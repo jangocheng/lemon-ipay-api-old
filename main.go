@@ -22,17 +22,18 @@ var (
 
 func init() {
 	flag.Parse()
+	envParam = EnvParamDto{
+		AppEnv:      *appEnv,
+		ConnEnv:     *connEnv,
+		BmappingUrl: *bmappingUrl,
+	}
 	//initTest()
 	db = InitDB("mysql", envParam.ConnEnv)
 	db.Sync(new(WxAccount))
 }
 
 func main() {
-	envParam = EnvParamDto{
-		AppEnv:      *appEnv,
-		ConnEnv:     *connEnv,
-		BmappingUrl: *bmappingUrl,
-	}
+
 	e := echo.New()
 	e.Use(middleware.CORS())
 	RegisterApi(e)
