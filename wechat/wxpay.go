@@ -3,13 +3,13 @@ package wechat
 import (
 	"encoding/json"
 	"encoding/xml"
-	"go-kit/sign"
 	"io/ioutil"
 	"lemon-epay/datadb"
 	"net/http"
 	"time"
 
 	"github.com/relax-space/go-kit/base"
+	"github.com/relax-space/go-kit/sign"
 
 	wxpay "github.com/relax-space/lemon-wxpay"
 
