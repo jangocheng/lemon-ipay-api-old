@@ -1,9 +1,10 @@
-package main
+package tests
 
 import (
 	"encoding/json"
 	"fmt"
 	"kit/test"
+	"lemon-epay/wechat"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -26,7 +27,7 @@ func Test_WxPay(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, WxPay(c))
+	test.Ok(t, wechat.Pay(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
 	fmt.Printf("%+v", v)
@@ -46,7 +47,7 @@ func Test_WxRefund(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, WxRefund(c))
+	test.Ok(t, wechat.Refund(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
 	fmt.Printf("%+v", v)
@@ -65,7 +66,7 @@ func Test_WxReverse(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, WxReverse(c))
+	test.Ok(t, wechat.Reverse(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
 	fmt.Printf("%+v", v)
@@ -84,7 +85,7 @@ func Test_WxQuery(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, WxQuery(c))
+	test.Ok(t, wechat.Query(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
 	fmt.Printf("%+v", v)
@@ -103,7 +104,7 @@ func Test_WxRefundQuery(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, WxRefundQuery(c))
+	test.Ok(t, wechat.RefundQuery(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
 	fmt.Printf("%+v", v)
@@ -126,7 +127,7 @@ func Test_WxPrePay(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, WxPrePay(c))
+	test.Ok(t, wechat.PrePay(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
 	fmt.Printf("%+v", v)
@@ -159,7 +160,7 @@ func Test_WxNotify(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, WxNotify(c))
+	test.Ok(t, wechat.Notify(c))
 	test.Equals(t, http.StatusOK, rec.Code)
 	fmt.Printf("%+v", string(rec.Body.Bytes()))
 

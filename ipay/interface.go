@@ -1,4 +1,4 @@
-package main
+package ipay
 
 type IPayService interface {
 	Pay(reqDto *ReqDto) (result map[string]interface{}, httpStatus int, err error)
