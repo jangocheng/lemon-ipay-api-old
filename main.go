@@ -2,34 +2,42 @@ package main
 
 import (
 	"flag"
+	"lemon-epay/datadb"
+	"lemon-epay/ipay"
+	"lemon-epay/wechat"
 	"net/http"
 	"os"
 
-	"github.com/go-xorm/xorm"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-xorm/xorm"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
 var (
 	appEnv      = flag.String("APP_ENV", os.Getenv("APP_ENV"), "APP_ENV")
-	connEnv     = flag.String("CONN_ENV", os.Getenv("CONN_ENV"), "CONN_ENV")
+	connEnv     = flag.String("IPAY_CONN", os.Getenv("IPAY_CONN"), "IPAY_CONN")
 	bmappingUrl = flag.String("BMAPPING_URL", os.Getenv("BMAPPING_URL"), "BMAPPING_URL")
-	envParam    EnvParamDto
-	db          *xorm.Engine
+	envParam    ipay.EnvParamDto
 )
 
 func init() {
 	flag.Parse()
-	envParam = EnvParamDto{
+	envParam = ipay.EnvParamDto{
 		AppEnv:      *appEnv,
 		ConnEnv:     *connEnv,
 		BmappingUrl: *bmappingUrl,
 	}
-	//initTest()
-	db = InitDB("mysql", envParam.ConnEnv)
-	db.Sync(new(WxAccount))
+	datadb.Db = InitDB("mysql", envParam.ConnEnv)
+	datadb.Db.Sync(new(datadb.Account))
+}
+
+func InitDB(dialect, conn string) (newDb *xorm.Engine) {
+	newDb, err := xorm.NewEngine(dialect, conn)
+	if err != nil {
+		panic(err)
+	}
+	return
 }
 
 func main() {
@@ -56,28 +64,20 @@ func RegisterApi(e *echo.Echo) {
 	}
 
 	v3 := e.Group("/v3", track)
-	v3.POST("/pay", Pay)
-	v3.POST("/query", Query)
-	v3.POST("/reverse", Reverse)
-	v3.POST("/refund", Refund)
-	v3.POST("/prepay", PrePay)
+	v3.POST("/pay", ipay.Pay)
+	v3.POST("/query", ipay.Query)
+	v3.POST("/reverse", ipay.Reverse)
+	v3.POST("/refund", ipay.Refund)
+	v3.POST("/prepay", ipay.PrePay)
 
-	v3.GET("/record/:Id", GetRecord)
+	v3.GET("/record/:Id", ipay.GetRecord)
 
 	wx := v3.Group("/wx")
-	wx.POST("/pay", WxPay)
-	wx.POST("/query", WxQuery)
-	wx.POST("/reverse", WxReverse)
-	wx.POST("/refund", WxRefund)
-	wx.POST("/prepay", WxPrePay)
-	wx.POST("/notify", WxNotify)
+	wx.POST("/pay", wechat.Pay)
+	wx.POST("/query", wechat.Query)
+	wx.POST("/reverse", wechat.Reverse)
+	wx.POST("/refund", wechat.Refund)
+	wx.POST("/prepay", wechat.PrePay)
+	wx.POST("/notify", wechat.Notify)
 
-}
-
-func InitDB(dialect, conn string) (newDb *xorm.Engine) {
-	newDb, err := xorm.NewEngine(dialect, conn)
-	if err != nil {
-		panic(err)
-	}
-	return
 }

@@ -1,4 +1,4 @@
-package main
+package datadb
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 )
 
 func Test_Account_Get(t *testing.T) {
-	account, err := WxAccount{}.Get(10001)
+	account, err := Account{}.Get(10001)
 	test.Ok(t, err)
 	fmt.Println(account)
 }
