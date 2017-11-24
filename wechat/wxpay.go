@@ -1,9 +1,16 @@
-package main
+package wechat
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"io/ioutil"
+	"lemon-epay/datadb"
 	"net/http"
+	"time"
+
+	"github.com/relax-space/go-kit/sign"
+
+	"github.com/relax-space/go-kit/base"
 
 	wxpay "github.com/relax-space/lemon-wxpay"
 
@@ -11,13 +18,13 @@ import (
 	"github.com/relax-space/go-kit/model"
 )
 
-func WxPay(c echo.Context) error {
-	reqDto := WxReqPayDto{}
+func Pay(c echo.Context) error {
+	reqDto := ReqPayDto{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := WxAccount{}.Get(reqDto.EId)
+	account, err := datadb.Account{}.Get(reqDto.EId)
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -56,13 +63,13 @@ func WxPay(c echo.Context) error {
 	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
 }
 
-func WxQuery(c echo.Context) error {
-	reqDto := WxReqQueryDto{}
+func Query(c echo.Context) error {
+	reqDto := ReqQueryDto{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := WxAccount{}.Get(reqDto.EId)
+	account, err := datadb.Account{}.Get(reqDto.EId)
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -81,12 +88,12 @@ func WxQuery(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
 }
-func WxRefund(c echo.Context) error {
-	reqDto := WxReqRefundDto{}
+func Refund(c echo.Context) error {
+	reqDto := ReqRefundDto{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	account, err := WxAccount{}.Get(reqDto.EId)
+	account, err := datadb.Account{}.Get(reqDto.EId)
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -110,12 +117,12 @@ func WxRefund(c echo.Context) error {
 	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
 
 }
-func WxReverse(c echo.Context) error {
-	reqDto := WxReqReverseDto{}
+func Reverse(c echo.Context) error {
+	reqDto := ReqReverseDto{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	account, err := WxAccount{}.Get(reqDto.EId)
+	account, err := datadb.Account{}.Get(reqDto.EId)
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -139,13 +146,13 @@ func WxReverse(c echo.Context) error {
 	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
 }
 
-func WxRefundQuery(c echo.Context) error {
-	reqDto := WxReqRefundQueryDto{}
+func RefundQuery(c echo.Context) error {
+	reqDto := ReqRefundQueryDto{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := WxAccount{}.Get(reqDto.EId)
+	account, err := datadb.Account{}.Get(reqDto.EId)
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -165,13 +172,13 @@ func WxRefundQuery(c echo.Context) error {
 	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
 }
 
-func WxPrePay(c echo.Context) error {
-	reqDto := WxReqPrePayDto{}
+func PrePay(c echo.Context) error {
+	reqDto := ReqPrePayDto{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := WxAccount{}.Get(reqDto.EId)
+	account, err := datadb.Account{}.Get(reqDto.EId)
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -188,10 +195,19 @@ func WxPrePay(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
+
+	prePayParam := make(map[string]interface{}, 0)
+	prePayParam["package"] = "prepay_id=" + base.ToString(result["prepay_id"])
+	prePayParam["timeStamp"] = base.ToString(time.Now().Unix())
+	prePayParam["nonceStr"] = result["nonce_str"]
+	prePayParam["signType"] = "MD5"
+	prePayParam["appId"] = result["appid"]
+	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
+
+	return c.JSON(http.StatusOK, model.Result{Success: true, Result: prePayParam})
 }
 
-func WxNotify(c echo.Context) error {
+func Notify(c echo.Context) error {
 
 	errResult := struct {
 		XMLName    xml.Name `xml:"xml"`
@@ -208,10 +224,47 @@ func WxNotify(c echo.Context) error {
 	if len(xmlBody) == 0 {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
-	result, err := wxpay.Notify(xmlBody)
+	_, mResult, err := wxpay.Notify(xmlBody)
 	if err != nil {
 		errResult.ReturnMsg = err.Error()
 		return c.XML(http.StatusBadRequest, errResult)
 	}
-	return c.XML(http.StatusOK, result)
+
+	attach, ok := mResult["attach"]
+	if !ok {
+		errResult.ReturnMsg = "attach is required"
+		return c.XML(http.StatusBadRequest, errResult)
+	}
+	var attachObj struct {
+		EId int64 `json:"e_id"`
+	}
+	err = json.Unmarshal([]byte(attach.(string)), &attachObj)
+	if err != nil {
+		errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
+		return c.XML(http.StatusBadRequest, errResult)
+	}
+
+	account, err := datadb.Account{}.Get(attachObj.EId)
+	if err != nil {
+		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+	}
+
+	//sign
+	signObj, ok := mResult["sign"]
+	if !ok {
+		errResult.ReturnMsg = "sign is missing"
+		return c.XML(http.StatusBadRequest, errResult)
+	}
+	delete(mResult, "sign")
+	if !sign.CheckSign(base.JoinMapObject(mResult), account.Key, signObj.(string)) {
+		errResult.ReturnMsg = "The signature is invalid"
+		return c.XML(http.StatusBadRequest, errResult)
+	}
+
+	successResult := struct {
+		XMLName    xml.Name `xml:"xml"`
+		ReturnCode string   `xml:"return_code"`
+		ReturnMsg  string   `xml:"return_msg"`
+	}{xml.Name{}, "SUCCESS", "OK"}
+	return c.XML(http.StatusOK, successResult)
 }

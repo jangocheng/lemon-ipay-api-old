@@ -1,28 +1,28 @@
-package main
+package wechat
 
 import wxpay "github.com/relax-space/lemon-wxpay"
 
-type WxReqPayDto struct {
+type ReqPayDto struct {
 	wxpay.ReqPayDto
 	EId int64 `json:"e_id"`
 }
-type WxReqQueryDto struct {
+type ReqQueryDto struct {
 	wxpay.ReqQueryDto
 	EId int64 `json:"e_id"`
 }
-type WxReqRefundDto struct {
+type ReqRefundDto struct {
 	wxpay.ReqRefundDto
 	EId int64 `json:"e_id"`
 }
-type WxReqReverseDto struct {
+type ReqReverseDto struct {
 	wxpay.ReqReverseDto
 	EId int64 `json:"e_id"`
 }
-type WxReqRefundQueryDto struct {
+type ReqRefundQueryDto struct {
 	wxpay.ReqRefundQueryDto
 	EId int64 `json:"e_id"`
 }
-type WxReqPrePayDto struct {
+type ReqPrePayDto struct {
 	wxpay.ReqPrePayDto
 	EId int64 `json:"e_id"`
 }

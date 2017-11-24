@@ -1,4 +1,4 @@
-package main
+package ipay
 
 const (
 	BMAPPING_TYPE_DEFAULT = "default"
