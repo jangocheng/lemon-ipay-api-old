@@ -307,7 +307,9 @@ func SubNotify(xmlBody string) (result datadb.NotifyWechat, err error) {
 		}
 
 		if len(attachObj.SubNotifyUrl) != 0 {
-			_, err = httpreq.POST("", attachObj.SubNotifyUrl, result, nil)
+			go func() {
+				_, err = httpreq.POST("", attachObj.SubNotifyUrl, result, nil)
+			}()
 		}
 	}
 	return
