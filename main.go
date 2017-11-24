@@ -29,7 +29,7 @@ func init() {
 		BmappingUrl: *bmappingUrl,
 	}
 	datadb.Db = InitDB("mysql", envParam.ConnEnv)
-	datadb.Db.Sync(new(datadb.Account))
+	datadb.Db.Sync(new(datadb.Account), new(datadb.NotifyWechat))
 }
 
 func InitDB(dialect, conn string) (newDb *xorm.Engine) {

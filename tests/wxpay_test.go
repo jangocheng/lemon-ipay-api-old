@@ -138,7 +138,7 @@ func Test_WxPrePay(t *testing.T) {
 func Test_WxNotify(t *testing.T) {
 	xmlBody := `<xml>
 	<appid><![CDATA[wx2421b1c4370ec43b]]></appid>
-	<attach><![CDATA[{"sub_notify_url":"https://baidu.com"}]]></attach>
+	<attach><![CDATA[{"sub_notify_url":"https://baidu.com","e_id":10001}]]></attach>
 	<bank_type><![CDATA[CFT]]></bank_type>
 	<fee_type><![CDATA[CNY]]></fee_type>
 	<is_subscribe><![CDATA[Y]]></is_subscribe>
@@ -148,12 +148,12 @@ func Test_WxNotify(t *testing.T) {
 	<out_trade_no><![CDATA[1409811653]]></out_trade_no>
 	<result_code><![CDATA[SUCCESS]]></result_code>
 	<return_code><![CDATA[SUCCESS]]></return_code>
-	<sign><![CDATA[B552ED6B279343CB493C5DD0D78AB241]]></sign>
+	<sign><![CDATA[CDF756E879A802281624B691BEAEAEF4]]></sign>
 	<sub_mch_id><![CDATA[10000100]]></sub_mch_id>
 	<time_end><![CDATA[20140903131540]]></time_end>
 	<total_fee>1</total_fee>
 	<trade_type><![CDATA[JSAPI]]></trade_type>
-	<transaction_id><![CDATA[1004400740201409030005092168]]></transaction_id>
+	<transaction_id><![CDATA[B2AE05C99B9C81A640472406AA3C2710]]></transaction_id>
  </xml>`
 	req, err := http.NewRequest(echo.POST, "/v3/wx/notify", strings.NewReader(xmlBody))
 	test.Ok(t, err)
@@ -161,7 +161,7 @@ func Test_WxNotify(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	test.Ok(t, wechat.Notify(c))
-	test.Equals(t, http.StatusOK, rec.Code)
 	fmt.Printf("%+v", string(rec.Body.Bytes()))
+	test.Equals(t, http.StatusOK, rec.Code)
 
 }
