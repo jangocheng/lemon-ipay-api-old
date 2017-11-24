@@ -56,8 +56,8 @@ func (NotifyWechat) InsertOne(notify *NotifyWechat) (err error) {
 	has, err := Db.Where("appId =?", notify.AppId).And("mch_id=?", notify.MchId).And("out_trade_no=?", notify.OutTradeNo).Get(&NotifyWechat{})
 	if err != nil {
 		return
-	} else if has {
-		err = errors.New("insert failure, because data is exist")
+	} else if has { //success,when data exsits
+		//err = errors.New("insert failure, because data is exist")
 		return
 	}
 	r, err := Db.InsertOne(notify)
