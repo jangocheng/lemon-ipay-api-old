@@ -3,10 +3,13 @@ package wechat
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 	"lemon-epay/datadb"
 	"net/http"
 	"time"
+
+	"github.com/relax-space/go-kit/httpreq"
 
 	"github.com/fatih/structs"
 	"github.com/relax-space/go-kit/base"
@@ -38,14 +41,14 @@ func Pay(c echo.Context) error {
 		Key: account.Key,
 	}
 
-	result, err := wxpay.Pay(reqDto.ReqPayDto, customDto)
+	result, err := wxpay.Pay(reqDto.ReqPayDto, &customDto)
 	if err != nil {
 		if err.Error() == wxpay.MESSAGE_PAYING {
 			queryDto := wxpay.ReqQueryDto{
 				ReqBaseDto: reqDto.ReqBaseDto,
 				OutTradeNo: result["out_trade_no"].(string),
 			}
-			result, err = wxpay.LoopQuery(queryDto, customDto, 40, 2)
+			result, err = wxpay.LoopQuery(&queryDto, &customDto, 40, 2)
 			if err == nil {
 				return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
 			} else {
@@ -53,7 +56,7 @@ func Pay(c echo.Context) error {
 					ReqBaseDto: reqDto.ReqBaseDto,
 					OutTradeNo: result["out_trade_no"].(string),
 				}
-				_, err = wxpay.Reverse(reverseDto, customDto, 10, 10)
+				_, err = wxpay.Reverse(&reverseDto, &customDto, 10, 10)
 				return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 			}
 		} else {
@@ -82,7 +85,7 @@ func Query(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
-	result, err := wxpay.Query(reqDto.ReqQueryDto, customDto)
+	result, err := wxpay.Query(reqDto.ReqQueryDto, &customDto)
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -109,7 +112,7 @@ func Refund(c echo.Context) error {
 		CertPathKey:  account.CertPathKey,
 		RootCa:       account.RootCa,
 	}
-	result, err := wxpay.Refund(reqDto.ReqRefundDto, custDto)
+	result, err := wxpay.Refund(reqDto.ReqRefundDto, &custDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 
@@ -138,7 +141,7 @@ func Reverse(c echo.Context) error {
 		CertPathKey:  account.CertPathKey,
 		RootCa:       account.RootCa,
 	}
-	result, err := wxpay.Reverse(reqDto.ReqReverseDto, custDto, 10, 10)
+	result, err := wxpay.Reverse(reqDto.ReqReverseDto, &custDto, 10, 10)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 
@@ -165,7 +168,7 @@ func RefundQuery(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
-	result, err := wxpay.RefundQuery(reqDto.ReqRefundQueryDto, customDto)
+	result, err := wxpay.RefundQuery(reqDto.ReqRefundQueryDto, &customDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -191,7 +194,7 @@ func PrePay(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
-	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, customDto)
+	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, &customDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -224,7 +227,7 @@ func Notify(c echo.Context) error {
 	if len(xmlBody) == 0 {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
-	notifyDto, err := wxpay.Notify(xmlBody)
+	notifyDto, err := SubNotify(xmlBody)
 	if err != nil {
 		errResult.ReturnMsg = err.Error()
 		return c.XML(http.StatusBadRequest, errResult)
@@ -240,6 +243,11 @@ func Notify(c echo.Context) error {
 	err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
 	if err != nil {
 		errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
+		return c.XML(http.StatusBadRequest, errResult)
+	}
+
+	if attachObj.EId == 0 {
+		errResult.ReturnMsg = "e_id is missing in attach"
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 
@@ -264,10 +272,43 @@ func Notify(c echo.Context) error {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 
+	err = datadb.NotifyWechat{}.InsertOne(&notifyDto)
+	if err != nil {
+		errResult.ReturnMsg = err.Error()
+		return c.XML(http.StatusBadRequest, errResult)
+	}
+
 	successResult := struct {
 		XMLName    xml.Name `xml:"xml"`
 		ReturnCode string   `xml:"return_code"`
 		ReturnMsg  string   `xml:"return_msg"`
 	}{xml.Name{}, "SUCCESS", "OK"}
 	return c.XML(http.StatusOK, successResult)
+}
+
+//sub_notify_url maybe exist in attach,
+//if sub_notify_url exist,then redirect to sub_notify_url
+func SubNotify(xmlBody string) (result datadb.NotifyWechat, err error) {
+	err = xml.Unmarshal([]byte(xmlBody), &result)
+	if err != nil {
+		err = fmt.Errorf("%v:%v", wxpay.MESSAGE_WECHAT, err)
+		return
+	}
+
+	if len(result.Attach) == 0 {
+		return
+	} else {
+		var attachObj struct {
+			SubNotifyUrl string `json:"sub_notify_url"`
+		}
+		err = json.Unmarshal([]byte(result.Attach), &attachObj)
+		if err != nil {
+			return
+		}
+
+		if len(attachObj.SubNotifyUrl) != 0 {
+			_, err = httpreq.POST("", attachObj.SubNotifyUrl, result, nil)
+		}
+	}
+	return
 }
