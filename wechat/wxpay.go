@@ -8,9 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/relax-space/go-kit/sign"
-
 	"github.com/relax-space/go-kit/base"
+	"github.com/relax-space/go-kit/sign"
 
 	wxpay "github.com/relax-space/lemon-wxpay"
 
