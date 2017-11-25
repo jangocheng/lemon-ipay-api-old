@@ -7,11 +7,11 @@ RUN go get github.com/relax-space/lemon-wxpay-sdk && \
 
 
 # add application
-ADD . /go/src/lemon-epay-api
-WORKDIR /go/src/lemon-epay-api
+ADD . /go/src/lemon-ipay-api
+WORKDIR /go/src/lemon-ipay-api
 RUN tar xf tmp/wxcert.tar.gz -C /go/src/github.com/relax-space/lemon-wxpay-sdk
 RUN go install
 
 EXPOSE 5000
 
-CMD ["lemon-epay-api"]
+CMD ["lemon-ipay-api"]
