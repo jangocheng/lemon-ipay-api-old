@@ -1,7 +1,7 @@
 package wechat
 
 import (
-	wxpay "github.com/relax-space/lemon-wxpay"
+	wxpay "github.com/relax-space/lemon-wxpay-sdk"
 )
 
 type ReqPayDto struct {

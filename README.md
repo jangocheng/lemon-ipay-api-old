@@ -1,2 +1,2 @@
-# lemon-epay
+# lemon-epay-api
 unified wechat and alipay

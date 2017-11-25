@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
-	"lemon-epay/datadb"
+	"lemon-epay-api/datadb"
 	"net/http"
 	"time"
 
@@ -15,7 +15,7 @@ import (
 	"github.com/relax-space/go-kit/base"
 	"github.com/relax-space/go-kit/sign"
 
-	wxpay "github.com/relax-space/lemon-wxpay"
+	wxpay "github.com/relax-space/lemon-wxpay-sdk"
 
 	"github.com/labstack/echo"
 	"github.com/relax-space/go-kit/model"
