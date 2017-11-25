@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"kit/test"
-	"lemon-epay/wechat"
+	"lemon-epay-api/wechat"
 	"net/http"
 	"net/http/httptest"
 	"strings"

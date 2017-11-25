@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"lemon-epay/datadb"
-	"lemon-epay/ipay"
+	"lemon-epay-api/datadb"
+	"lemon-epay-api/ipay"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
