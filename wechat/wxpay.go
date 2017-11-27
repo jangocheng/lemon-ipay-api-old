@@ -31,7 +31,7 @@ func Pay(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = wxpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
 		SubAppId: account.SubAppId,
 		MchId:    account.MchId,
@@ -76,7 +76,7 @@ func Query(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = wxpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
 		SubAppId: account.SubAppId,
 		MchId:    account.MchId,
@@ -100,7 +100,7 @@ func Refund(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = wxpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
 		SubAppId: account.SubAppId,
 		MchId:    account.MchId,
@@ -129,7 +129,7 @@ func Reverse(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = wxpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
 		SubAppId: account.SubAppId,
 		MchId:    account.MchId,
@@ -159,7 +159,7 @@ func RefundQuery(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = wxpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
 		SubAppId: account.SubAppId,
 		MchId:    account.MchId,
@@ -185,7 +185,7 @@ func PrePay(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = wxpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
 		SubAppId: account.SubAppId,
 		MchId:    account.MchId,
@@ -267,7 +267,7 @@ func Notify(c echo.Context) error {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 	delete(mResult, "sign")
-	if !sign.CheckSign(base.JoinMapObject(mResult), account.Key, signObj.(string)) {
+	if !sign.CheckMd5Sign(base.JoinMapObject(mResult), account.Key, signObj.(string)) {
 		errResult.ReturnMsg = "The signature is invalid"
 		return c.XML(http.StatusBadRequest, errResult)
 	}
