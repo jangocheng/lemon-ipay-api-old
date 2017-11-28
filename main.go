@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"lemon-ipay-api/datadb"
+	"lemon-ipay-api/core"
 	"lemon-ipay-api/ipay"
+	"lemon-ipay-api/model"
 	"lemon-ipay-api/wechat"
 	"net/http"
 	"os"
@@ -18,18 +19,20 @@ var (
 	appEnv      = flag.String("APP_ENV", os.Getenv("APP_ENV"), "APP_ENV")
 	connEnv     = flag.String("IPAY_CONN", os.Getenv("IPAY_CONN"), "IPAY_CONN")
 	bmappingUrl = flag.String("BMAPPING_URL", os.Getenv("BMAPPING_URL"), "BMAPPING_URL")
-	envParam    ipay.EnvParamDto
+	hostUrl     = flag.String("IPAY_HOST", os.Getenv("IPAY_HOST"), "IPAY_HOST")
 )
 
 func init() {
 	flag.Parse()
-	envParam = ipay.EnvParamDto{
+	envParam := &core.EnvParamDto{
 		AppEnv:      *appEnv,
 		ConnEnv:     *connEnv,
 		BmappingUrl: *bmappingUrl,
+		HostUrl:     *hostUrl,
 	}
-	datadb.Db = InitDB("mysql", envParam.ConnEnv)
-	datadb.Db.Sync(new(datadb.Account), new(datadb.NotifyWechat))
+	core.InitEnv(envParam)
+	model.Db = InitDB("mysql", envParam.ConnEnv)
+	model.Db.Sync(new(model.WxAccount), new(model.NotifyWechat))
 }
 
 func InitDB(dialect, conn string) (newDb *xorm.Engine) {
@@ -79,5 +82,9 @@ func RegisterApi(e *echo.Echo) {
 	wx.POST("/refund", wechat.Refund)
 	wx.POST("/prepay", wechat.PrePay)
 	wx.POST("/notify", wechat.Notify)
+	// wx.GET("/openid", wechat.WxOpenId)
+	// wx.GET("/ropenid/:appid", wechat.RedirectWithWxOpenId)
+	wx.POST("/prepayeasy", wechat.PrePayEasy)
+	wx.GET("/prepayopenid", wechat.PrepayOpenId)
 
 }

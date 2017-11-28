@@ -5,9 +5,13 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
-	"lemon-ipay-api/datadb"
+	"lemon-ipay-api/core"
+	"lemon-ipay-api/model"
 	"net/http"
+	"net/url"
 	"time"
+
+	"github.com/relax-space/lemon-wxmp-sdk/mpAuth"
 
 	"github.com/relax-space/go-kit/httpreq"
 
@@ -18,18 +22,18 @@ import (
 	wxpay "github.com/relax-space/lemon-wxpay-sdk"
 
 	"github.com/labstack/echo"
-	"github.com/relax-space/go-kit/model"
+	kmodel "github.com/relax-space/go-kit/model"
 )
 
 func Pay(c echo.Context) error {
 	reqDto := ReqPayDto{}
 	if err := c.Bind(&reqDto); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := datadb.Account{}.Get(reqDto.EId)
+	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
@@ -50,31 +54,31 @@ func Pay(c echo.Context) error {
 			}
 			result, err = wxpay.LoopQuery(&queryDto, &customDto, 40, 2)
 			if err == nil {
-				return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
+				return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 			} else {
 				reverseDto := wxpay.ReqReverseDto{
 					ReqBaseDto: reqDto.ReqBaseDto,
 					OutTradeNo: result["out_trade_no"].(string),
 				}
 				_, err = wxpay.Reverse(&reverseDto, &customDto, 10, 10)
-				return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+				return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 			}
 		} else {
-			return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+			return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 		}
 	}
-	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
+	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 }
 
 func Query(c echo.Context) error {
 	reqDto := ReqQueryDto{}
 	if err := c.Bind(&reqDto); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := datadb.Account{}.Get(reqDto.EId)
+	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
@@ -87,18 +91,18 @@ func Query(c echo.Context) error {
 	}
 	result, err := wxpay.Query(reqDto.ReqQueryDto, &customDto)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusOK, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
+	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 }
 func Refund(c echo.Context) error {
 	reqDto := ReqRefundDto{}
 	if err := c.Bind(&reqDto); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	account, err := datadb.Account{}.Get(reqDto.EId)
+	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
@@ -108,26 +112,26 @@ func Refund(c echo.Context) error {
 	}
 	custDto := wxpay.ReqCustomerDto{
 		Key:          account.Key,
-		CertPathName: account.CertPathName,
-		CertPathKey:  account.CertPathKey,
+		CertPathName: account.CertName,
+		CertPathKey:  account.CertKey,
 		RootCa:       account.RootCa,
 	}
 	result, err := wxpay.Refund(reqDto.ReqRefundDto, &custDto)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 
 	}
-	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
+	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 
 }
 func Reverse(c echo.Context) error {
 	reqDto := ReqReverseDto{}
 	if err := c.Bind(&reqDto); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	account, err := datadb.Account{}.Get(reqDto.EId)
+	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
@@ -137,27 +141,27 @@ func Reverse(c echo.Context) error {
 	}
 	custDto := wxpay.ReqCustomerDto{
 		Key:          account.Key,
-		CertPathName: account.CertPathName,
-		CertPathKey:  account.CertPathKey,
+		CertPathName: account.CertName,
+		CertPathKey:  account.CertKey,
 		RootCa:       account.RootCa,
 	}
 	result, err := wxpay.Reverse(reqDto.ReqReverseDto, &custDto, 10, 10)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 
 	}
-	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
+	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 }
 
 func RefundQuery(c echo.Context) error {
 	reqDto := ReqRefundQueryDto{}
 	if err := c.Bind(&reqDto); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := datadb.Account{}.Get(reqDto.EId)
+	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
@@ -170,20 +174,20 @@ func RefundQuery(c echo.Context) error {
 	}
 	result, err := wxpay.RefundQuery(reqDto.ReqRefundQueryDto, &customDto)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	return c.JSON(http.StatusOK, model.Result{Success: true, Result: result})
+	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 }
 
 func PrePay(c echo.Context) error {
 	reqDto := ReqPrePayDto{}
 	if err := c.Bind(&reqDto); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 
-	account, err := datadb.Account{}.Get(reqDto.EId)
+	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
@@ -196,7 +200,7 @@ func PrePay(c echo.Context) error {
 	}
 	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, &customDto)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 
 	prePayParam := make(map[string]interface{}, 0)
@@ -207,7 +211,7 @@ func PrePay(c echo.Context) error {
 	prePayParam["appId"] = result["appid"]
 	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
 
-	return c.JSON(http.StatusOK, model.Result{Success: true, Result: prePayParam})
+	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: prePayParam})
 }
 
 func Notify(c echo.Context) error {
@@ -251,9 +255,9 @@ func Notify(c echo.Context) error {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 
-	account, err := datadb.Account{}.Get(attachObj.EId)
+	account, err := model.WxAccount{}.Get(attachObj.EId)
 	if err != nil {
-		return c.JSON(http.StatusOK, model.Result{Success: false, Error: model.Error{Code: 10004, Message: err.Error()}})
+		return c.JSON(http.StatusOK, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 
 	s := structs.New(notifyDto)
@@ -272,7 +276,7 @@ func Notify(c echo.Context) error {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 
-	err = datadb.NotifyWechat{}.InsertOne(&notifyDto)
+	err = model.NotifyWechat{}.InsertOne(&notifyDto)
 	if err != nil {
 		errResult.ReturnMsg = err.Error()
 		return c.XML(http.StatusBadRequest, errResult)
@@ -288,7 +292,7 @@ func Notify(c echo.Context) error {
 
 //sub_notify_url maybe exist in attach,
 //if sub_notify_url exist,then redirect to sub_notify_url
-func SubNotify(xmlBody string) (result datadb.NotifyWechat, err error) {
+func SubNotify(xmlBody string) (result model.NotifyWechat, err error) {
 	err = xml.Unmarshal([]byte(xmlBody), &result)
 	if err != nil {
 		err = fmt.Errorf("%v:%v", wxpay.MESSAGE_WECHAT, err)
@@ -313,4 +317,112 @@ func SubNotify(xmlBody string) (result datadb.NotifyWechat, err error) {
 		}
 	}
 	return
+}
+
+const (
+	IPAY_WECHAT_PREPAY_INNER = "IPAY_WECHAT_PREPAY_INNER"
+	IPAY_WECHAT_PREPAY       = "IPAY_WECHAT_PREPAY"
+	//IPAY_WECHAT_PREPAY_ERROR = "IPAY_WECHAT_PREPAY_ERROR"
+)
+
+/*
+1.get secret by eId
+2.get openId by secret
+3.prepay
+*/
+func PrePayEasy(c echo.Context) error {
+	reqDto := ReqPrepayEasyDto{}
+	if err := c.Bind(&reqDto); err != nil {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+	if reqDto.ReqPrePayDto == nil {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: "miss param:prepay_param"}})
+	}
+
+	SetCookieObj(IPAY_WECHAT_PREPAY_INNER, reqDto.ReqPrePayDto, c)
+
+	openIdUrlParam := &mpAuth.ReqDto{
+		AppId:       reqDto.AppId,
+		State:       "state",
+		RedirectUrl: fmt.Sprintf("%v/wx/%v", core.Env.HostUrl, "prepayopenid"),
+		PageUrl:     reqDto.PageUrl,
+	}
+	reqUrl := mpAuth.GetUrlForAccessToken(openIdUrlParam)
+	return c.Redirect(http.StatusFound, reqUrl)
+}
+
+func PrepayOpenId(c echo.Context) error {
+	code := c.QueryParam("code")
+	reqUrl := c.QueryParam("reurl")
+	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY_INNER)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+	if len(cookie.Value) == 0 {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: "miss cookie"}})
+	}
+	//dd := "%7B%22body%22%3A%22xiaomiao+test%22%2C%22total_fee%22%3A1%2C%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%2C%22trade_type%22%3A%22JSAPI%22%2C%22scene_info%22%3A%7B%7D%2C%22e_id%22%3A10001%7D"
+	param, err := url.QueryUnescape(cookie.Value)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+	reqDto := ReqPrePayDto{}
+	err = json.Unmarshal([]byte(param), &reqDto)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+	account, err := model.WxAccount{}.Get(reqDto.EId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+	respDto, err := mpAuth.GetAccessTokenAndOpenId(code, account.AppId, account.Secret)
+	reqDto.OpenId = respDto.OpenId
+
+	//request prepay
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
+		AppId:    account.AppId,
+		SubAppId: account.SubAppId,
+		MchId:    account.MchId,
+		SubMchId: account.SubMchId,
+	}
+	customDto := wxpay.ReqCustomerDto{
+		Key: account.Key,
+	}
+	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, &customDto)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+
+	prePayParam := make(map[string]interface{}, 0)
+	prePayParam["package"] = "prepay_id=" + base.ToString(result["prepay_id"])
+	prePayParam["timeStamp"] = base.ToString(time.Now().Unix())
+	prePayParam["nonceStr"] = result["nonce_str"]
+	prePayParam["signType"] = "MD5"
+	prePayParam["appId"] = result["appid"]
+	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
+
+	SetCookieObj(IPAY_WECHAT_PREPAY, prePayParam, c)
+	return c.Redirect(http.StatusFound, reqUrl)
+
+}
+
+func SetCookie(key, value string, c echo.Context) {
+	cookie := new(http.Cookie)
+	cookie.Name = key
+	cookie.Value = value
+	//cookie.Domain = "p2shop.cn"
+	cookie.Path = "/"
+	//cookie.Expires = time.Now().Add(1 * time.Hour)
+	c.SetCookie(cookie)
+}
+
+func SetCookieObj(key string, value interface{}, c echo.Context) {
+
+	cookie := new(http.Cookie)
+	cookie.Name = key
+	b, _ := json.Marshal(value)
+	prepayParam := url.QueryEscape(string(b))
+	cookie.Value = prepayParam
+	cookie.Path = "/"
+	c.SetCookie(cookie)
 }

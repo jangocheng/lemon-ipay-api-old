@@ -27,8 +27,3 @@ type BaseServiceDto struct {
 	PayType string `json:"pay_type"`
 	EId     int64  `json:"e_id"`
 }
-type EnvParamDto struct {
-	AppEnv      string `json:"app_env"`
-	BmappingUrl string `json:"bmapping_url"`
-	ConnEnv     string `json:"conn_env"`
-}
