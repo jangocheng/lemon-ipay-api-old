@@ -4,6 +4,7 @@ MAINTAINER jang.jaehue@eland.co.kr
 # install go packages
 RUN go get github.com/relax-space/lemon-wxpay-sdk && \
     go get github.com/relax-space/lemon-wxmp-sdk/... && \
+    go get github.com/relax-space/lemon-alipay-sdk && \
     go get github.com/relax-space/go-kit/...
 
 
