@@ -182,13 +182,6 @@ func TestPing(t *testing.T) {
 }
 
 func Test_PrePayEasy(t *testing.T) {
-
-	// prepay_param := "{\"e_id\":10001,\"body\":\"xiaomiao+test\",\"total_fee\":1,\"trade_type\":\"JSAPI\",\"notify_url\":\"http://xiao.xinmiao.com\"}"
-	// reqDto := wechat.ReqPrePayDto{}
-	// err := json.Unmarshal([]byte(prepay_param), &reqDto)
-	// fmt.Printf("%+v", reqDto)
-	// fmt.Printf("%+v", err)
-
 	/*
 		localhost:5000/v3/wx/prepayeasy?app_id=&page_url=ttps%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping&prepay_param={"e_id":10001,"body":"xiaomiao test","total_fee":1,"trade_type":"JSAPI","notify_url":"http://xiao.xinmiao.com"}
 	*/
@@ -214,14 +207,12 @@ func Test_PrePayEasy(t *testing.T) {
 }
 
 func Test_PrepayOpenId(t *testing.T) {
-	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "021kXOtq0400Mp1hJYwq03GMtq0kXOtA", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
+	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "071MDWbk0iH46o1h7mck0D6Qbk0MDWbW", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
 	req, err := http.NewRequest(echo.GET, path, nil)
 	test.Ok(t, err)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	c.SetPath("/:param")
-	c.SetParamNames("param")
-	c.SetParamValues(url.QueryEscape("{\"e_id\":10001,\"body\":\"xiaomiao+test\",\"total_fee\":1,\"trade_type\":\"JSAPI\",\"notify_url\":\"http://xiao.xinmiao.com\"}"))
+	wechat.SetCookie(wechat.IPAY_WECHAT_PREPAY, "%7B%22body%22%3A%22xiaomiao+test%22%2C%22total_fee%22%3A1%2C%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%2C%22trade_type%22%3A%22JSAPI%22%2C%22scene_info%22%3A%7B%7D%2C%22e_id%22%3A10001%7D", c)
 	test.Ok(t, wechat.PrepayOpenId(c))
 	fmt.Printf("%+v", rec.HeaderMap)
 	test.Equals(t, http.StatusFound, rec.Code)

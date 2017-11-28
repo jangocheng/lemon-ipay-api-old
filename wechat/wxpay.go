@@ -339,18 +339,28 @@ func PrePayEasy(c echo.Context) error {
 	openIdUrlParam := &mpAuth.ReqDto{
 		AppId:       appId,
 		State:       "state",
-		RedirectUrl: fmt.Sprintf("%v/wx/%v/%v", core.Env.HostUrl, "prepayopenid", prepay_param),
+		RedirectUrl: fmt.Sprintf("%v/wx/%v", core.Env.HostUrl, "prepayopenid"),
 		PageUrl:     pageUrl,
 	}
 	reqUrl := mpAuth.GetUrlForAccessToken(openIdUrlParam)
+
+	SetCookie(IPAY_WECHAT_PREPAY, prepay_param, c)
 	return c.Redirect(http.StatusFound, reqUrl)
 }
 
 func PrepayOpenId(c echo.Context) error {
 	code := c.QueryParam("code")
 	reqUrl := c.QueryParam("reurl")
-	param := c.Param("param")
-	param, err := url.QueryUnescape(param)
+	//	param := c.Param("param")
+
+	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY)
+	fmt.Printf("11111%+v,%v", cookie, err)
+	if err != nil {
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+	}
+	param, err := url.QueryUnescape(cookie.Value)
 	if err != nil {
 		q := make(url.Values)
 		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
