@@ -331,21 +331,21 @@ const (
 3.prepay
 */
 func PrePayEasy(c echo.Context) error {
-	reqDto := ReqPrepayEasyDto{}
-	if err := c.Bind(&reqDto); err != nil {
-		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
-	}
-	if reqDto.ReqPrePayDto == nil {
-		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: "miss param:prepay_param"}})
-	}
 
-	SetCookieObj(IPAY_WECHAT_PREPAY_INNER, reqDto.ReqPrePayDto, c)
+	appId := c.QueryParam("app_id")
+	pageUrl := c.QueryParam("page_url")
+	prepay_param := c.QueryParam("prepay_param")
+	fmt.Printf("%+v", appId)
+	fmt.Printf("%+v", pageUrl)
+	fmt.Printf("%+v", prepay_param)
+
+	SetCookieObj(IPAY_WECHAT_PREPAY_INNER, prepay_param, c)
 
 	openIdUrlParam := &mpAuth.ReqDto{
-		AppId:       reqDto.AppId,
+		AppId:       appId,
 		State:       "state",
 		RedirectUrl: fmt.Sprintf("%v/wx/%v", core.Env.HostUrl, "prepayopenid"),
-		PageUrl:     reqDto.PageUrl,
+		PageUrl:     pageUrl,
 	}
 	reqUrl := mpAuth.GetUrlForAccessToken(openIdUrlParam)
 	return c.Redirect(http.StatusFound, reqUrl)

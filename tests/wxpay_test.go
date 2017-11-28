@@ -182,21 +182,22 @@ func TestPing(t *testing.T) {
 }
 
 func Test_PrePayEasy(t *testing.T) {
-	bodyStr := fmt.Sprintf(`
-	{
-		"app_id":"%v",
-		"page_url":"%v",
-		"prepay_param":{
-			"e_id":10001,
-			"body":"xiaomiao test",
-			"total_fee":1,
-			"trade_type":"JSAPI",
-			"notify_url":"http://xiao.xinmiao.com"
-		}
-	}`, *appId, url.QueryEscape("https://gateway.p2shop.cn/ipay/ping"))
-	req, err := http.NewRequest(echo.POST, "/v3/wx/prepayeasy", strings.NewReader(bodyStr))
+	/*
+		localhost:5000/v3/wx/prepayeasy?app_id=&page_url=ttps%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping&prepay_param={"e_id":10001,"body":"xiaomiao test","total_fee":1,"trade_type":"JSAPI","notify_url":"http://xiao.xinmiao.com"}
+	*/
+	q := make(url.Values)
+	q.Set("app_id", *appId)
+	q.Set("page_url", url.QueryEscape("https://gateway.p2shop.cn/ipay/ping"))
+	q.Set("prepay_param", `{
+		"e_id":10001,
+		"body":"xiaomiao test",
+		"total_fee":1,
+		"trade_type":"JSAPI",
+		"notify_url":"http://xiao.xinmiao.com"
+	}`)
+
+	req, err := http.NewRequest(echo.GET, "/v3/wx/prepayeasy?"+q.Encode(), nil)
 	test.Ok(t, err)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	test.Ok(t, wechat.PrePayEasy(c))

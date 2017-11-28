@@ -1,7 +1,6 @@
 package wechat
 
 import (
-	"github.com/relax-space/lemon-wxmp-sdk/mpAuth"
 	wxpay "github.com/relax-space/lemon-wxpay-sdk"
 )
 
@@ -31,6 +30,12 @@ type ReqPrePayDto struct {
 }
 
 type ReqPrepayEasyDto struct {
-	*mpAuth.ReqDto
-	ReqPrePayDto *ReqPrePayDto `json:"prepay_param"`
+	AppId string `json:"app_id" query:"app_id"` //required
+	Scope string `json:"scope" query:"scope"`   //option
+	State string `json:"state" query:"state"`   //option
+
+	//Secret      string `json:"secret"`
+	RedirectUrl  string        `json:"redirect_url" query:"redirect_url"`
+	PageUrl      string        `json:"page_url" query:"page_url"` //option
+	ReqPrePayDto *ReqPrePayDto `json:"prepay_param" query:"prepay_param"`
 }
