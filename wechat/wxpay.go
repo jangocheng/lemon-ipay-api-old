@@ -320,8 +320,8 @@ func SubNotify(xmlBody string) (result model.NotifyWechat, err error) {
 }
 
 const (
-	IPAY_WECHAT_PREPAY_INNER = "IPAY_WECHAT_PREPAY_INNER"
 	IPAY_WECHAT_PREPAY       = "IPAY_WECHAT_PREPAY"
+	IPAY_WECHAT_PREPAY_ERROR = "IPAY_WECHAT_PREPAY_ERROR"
 	//IPAY_WECHAT_PREPAY_ERROR = "IPAY_WECHAT_PREPAY_ERROR"
 )
 
@@ -335,16 +335,11 @@ func PrePayEasy(c echo.Context) error {
 	appId := c.QueryParam("app_id")
 	pageUrl := c.QueryParam("page_url")
 	prepay_param := c.QueryParam("prepay_param")
-	fmt.Printf("%+v", appId)
-	fmt.Printf("%+v", pageUrl)
-	fmt.Printf("%+v", prepay_param)
-
-	SetCookieObj(IPAY_WECHAT_PREPAY_INNER, prepay_param, c)
 
 	openIdUrlParam := &mpAuth.ReqDto{
 		AppId:       appId,
 		State:       "state",
-		RedirectUrl: fmt.Sprintf("%v/wx/%v", core.Env.HostUrl, "prepayopenid"),
+		RedirectUrl: fmt.Sprintf("%v/wx/%v/%v", core.Env.HostUrl, "prepayopenid", prepay_param),
 		PageUrl:     pageUrl,
 	}
 	reqUrl := mpAuth.GetUrlForAccessToken(openIdUrlParam)
@@ -354,28 +349,28 @@ func PrePayEasy(c echo.Context) error {
 func PrepayOpenId(c echo.Context) error {
 	code := c.QueryParam("code")
 	reqUrl := c.QueryParam("reurl")
-	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY_INNER)
+	param := c.Param("param")
+	param, err := url.QueryUnescape(param)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
-	}
-	if len(cookie.Value) == 0 {
-		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: "miss cookie"}})
-	}
-	//dd := "%7B%22body%22%3A%22xiaomiao+test%22%2C%22total_fee%22%3A1%2C%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%2C%22trade_type%22%3A%22JSAPI%22%2C%22scene_info%22%3A%7B%7D%2C%22e_id%22%3A10001%7D"
-	param, err := url.QueryUnescape(cookie.Value)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+		SetCookie(IPAY_WECHAT_PREPAY, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	reqDto := ReqPrePayDto{}
 	err = json.Unmarshal([]byte(param), &reqDto)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+		SetCookie(IPAY_WECHAT_PREPAY, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	respDto, err := mpAuth.GetAccessTokenAndOpenId(code, account.AppId, account.Secret)
+	if err != nil {
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
+	}
 	reqDto.OpenId = respDto.OpenId
 
 	//request prepay
@@ -390,7 +385,8 @@ func PrepayOpenId(c echo.Context) error {
 	}
 	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, &customDto)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 
 	prePayParam := make(map[string]interface{}, 0)
