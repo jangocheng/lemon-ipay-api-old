@@ -24,8 +24,8 @@ type ReqRefundQueryDto struct {
 	*wxpay.ReqRefundQueryDto
 	EId int64 `json:"e_id"`
 }
-type ReqPrePayDto struct {
-	*wxpay.ReqPrePayDto
+type ReqPrepayDto struct {
+	*wxpay.ReqPrepayDto
 	EId int64 `json:"e_id"`
 }
 
@@ -37,5 +37,5 @@ type ReqPrepayEasyDto struct {
 	//Secret      string `json:"secret"`
 	RedirectUrl  string        `json:"redirect_url" query:"redirect_url"`
 	PageUrl      string        `json:"page_url" query:"page_url"` //option
-	ReqPrePayDto *ReqPrePayDto `json:"prepay_param" query:"prepay_param"`
+	ReqPrepayDto *ReqPrepayDto `json:"prepay_param" query:"prepay_param"`
 }

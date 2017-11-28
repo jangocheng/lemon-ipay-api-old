@@ -179,8 +179,8 @@ func RefundQuery(c echo.Context) error {
 	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 }
 
-func PrePay(c echo.Context) error {
-	reqDto := ReqPrePayDto{}
+func Prepay(c echo.Context) error {
+	reqDto := ReqPrepayDto{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -198,7 +198,7 @@ func PrePay(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
-	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, &customDto)
+	result, err := wxpay.Prepay(reqDto.ReqPrepayDto, &customDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -328,9 +328,9 @@ const (
 /*
 1.get secret by eId
 2.get openId by secret
-3.prepay
+3.Prepay
 */
-func PrePayEasy(c echo.Context) error {
+func PrepayEasy(c echo.Context) error {
 
 	appId := c.QueryParam("app_id")
 	pageUrl := c.QueryParam("page_url")
@@ -351,10 +351,7 @@ func PrePayEasy(c echo.Context) error {
 func PrepayOpenId(c echo.Context) error {
 	code := c.QueryParam("code")
 	reqUrl := c.QueryParam("reurl")
-	//	param := c.Param("param")
-
 	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY)
-	fmt.Printf("11111%+v,%v", cookie, err)
 	if err != nil {
 		q := make(url.Values)
 		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
@@ -366,7 +363,7 @@ func PrepayOpenId(c echo.Context) error {
 		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
 		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 	}
-	reqDto := ReqPrePayDto{}
+	reqDto := ReqPrepayDto{}
 	err = json.Unmarshal([]byte(param), &reqDto)
 	if err != nil {
 		q := make(url.Values)
@@ -387,7 +384,7 @@ func PrepayOpenId(c echo.Context) error {
 	}
 	reqDto.OpenId = respDto.OpenId
 
-	//request prepay
+	//request Prepay
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
 		SubAppId: account.SubAppId,
@@ -397,7 +394,7 @@ func PrepayOpenId(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
-	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, &customDto)
+	result, err := wxpay.Prepay(reqDto.ReqPrepayDto, &customDto)
 	if err != nil {
 		q := make(url.Values)
 		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
