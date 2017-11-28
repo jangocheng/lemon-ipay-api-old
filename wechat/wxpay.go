@@ -352,24 +352,28 @@ func PrepayOpenId(c echo.Context) error {
 	param := c.Param("param")
 	param, err := url.QueryUnescape(param)
 	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY, err.Error(), c)
-		return c.Redirect(http.StatusFound, reqUrl)
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 	}
 	reqDto := ReqPrePayDto{}
 	err = json.Unmarshal([]byte(param), &reqDto)
 	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY, err.Error(), c)
-		return c.Redirect(http.StatusFound, reqUrl)
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 	}
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		return c.Redirect(http.StatusFound, reqUrl)
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 	}
 	respDto, err := mpAuth.GetAccessTokenAndOpenId(code, account.AppId, account.Secret)
 	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		return c.Redirect(http.StatusFound, reqUrl)
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 	}
 	reqDto.OpenId = respDto.OpenId
 
@@ -385,8 +389,9 @@ func PrepayOpenId(c echo.Context) error {
 	}
 	result, err := wxpay.PrePay(reqDto.ReqPrePayDto, &customDto)
 	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		return c.Redirect(http.StatusFound, reqUrl)
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 	}
 
 	prePayParam := make(map[string]interface{}, 0)
@@ -397,28 +402,10 @@ func PrepayOpenId(c echo.Context) error {
 	prePayParam["appId"] = result["appid"]
 	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
 
-	SetCookieObj(IPAY_WECHAT_PREPAY, prePayParam, c)
-	return c.Redirect(http.StatusFound, reqUrl)
+	b, _ := json.Marshal(prePayParam)
+	prepayParamStr := url.QueryEscape(string(b))
+	q := make(url.Values)
+	q.Set(IPAY_WECHAT_PREPAY, prepayParamStr)
+	return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 
-}
-
-func SetCookie(key, value string, c echo.Context) {
-	cookie := new(http.Cookie)
-	cookie.Name = key
-	cookie.Value = value
-	//cookie.Domain = "p2shop.cn"
-	cookie.Path = "/"
-	//cookie.Expires = time.Now().Add(1 * time.Hour)
-	c.SetCookie(cookie)
-}
-
-func SetCookieObj(key string, value interface{}, c echo.Context) {
-
-	cookie := new(http.Cookie)
-	cookie.Name = key
-	b, _ := json.Marshal(value)
-	prepayParam := url.QueryEscape(string(b))
-	cookie.Value = prepayParam
-	cookie.Path = "/"
-	c.SetCookie(cookie)
 }
