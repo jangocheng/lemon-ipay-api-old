@@ -1,4 +1,4 @@
-package datadb
+package model
 
 import (
 	"fmt"

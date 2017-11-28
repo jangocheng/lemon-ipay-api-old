@@ -1,30 +1,28 @@
 package tests
 
 import (
-	"lemon-ipay-api/datadb"
-	"lemon-ipay-api/ipay"
+	"lemon-ipay-api/core"
+	"lemon-ipay-api/model"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 )
 
-var (
-	envParam ipay.EnvParamDto
-)
-
 func init() {
 	initTest()
-	datadb.Db = InitDB("mysql", envParam.ConnEnv)
-	datadb.Db.Sync(new(datadb.Account))
 }
 
 func initTest() {
-	envParam = ipay.EnvParamDto{
+	envParam := &core.EnvParamDto{
 		AppEnv:      "",
 		ConnEnv:     os.Getenv("IPAY_CONN"),
 		BmappingUrl: "",
+		HostUrl:     os.Getenv("IPAY_HOST"),
 	}
+	core.InitEnv(envParam)
+	model.Db = InitDB("mysql", envParam.ConnEnv)
+	model.Db.Sync(new(model.WxAccount))
 }
 
 func InitDB(dialect, conn string) (newDb *xorm.Engine) {
