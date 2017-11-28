@@ -413,9 +413,8 @@ func PrepayOpenId(c echo.Context) error {
 	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
 
 	b, _ := json.Marshal(prePayParam)
-	prepayParamStr := url.QueryEscape(string(b))
 	q := make(url.Values)
-	q.Set(IPAY_WECHAT_PREPAY, prepayParamStr)
+	q.Set(IPAY_WECHAT_PREPAY, string(b))
 	return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
 
 }
