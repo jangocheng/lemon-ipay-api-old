@@ -214,7 +214,7 @@ func Test_PrePayEasy(t *testing.T) {
 }
 
 func Test_PrepayOpenId(t *testing.T) {
-	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "061jVonW1Px1CS0gh6qW1XkonW1jVonT", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
+	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "021kXOtq0400Mp1hJYwq03GMtq0kXOtA", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
 	req, err := http.NewRequest(echo.GET, path, nil)
 	test.Ok(t, err)
 	rec := httptest.NewRecorder()
