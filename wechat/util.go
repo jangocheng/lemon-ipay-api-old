@@ -11,6 +11,7 @@ import (
 func SetCookie(key, value string, c echo.Context) {
 	cookie := new(http.Cookie)
 	cookie.Name = key
+	value = url.QueryEscape(value)
 	cookie.Value = value
 	cookie.Domain = "p2shop.cn"
 	cookie.Path = "/"
