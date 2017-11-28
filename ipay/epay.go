@@ -33,7 +33,7 @@ func Refund(c echo.Context) error {
 	return nil
 }
 
-func PrePay(c echo.Context) error {
+func Prepay(c echo.Context) error {
 	return nil
 }
 

@@ -39,14 +39,3 @@ func (WxAccount) Get(eId int64) (account WxAccount, err error) {
 	}
 	return
 }
-
-func (WxAccount) GetByAppId(appId string) (account WxAccount, err error) {
-	has, err := Db.Where("app_id =?", appId).Get(&account)
-	if err != nil {
-		return
-	} else if !has {
-		err = errors.New("no data has found.")
-		return
-	}
-	return
-}

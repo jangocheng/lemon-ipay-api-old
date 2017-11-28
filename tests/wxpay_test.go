@@ -119,7 +119,7 @@ func Test_WxRefundQuery(t *testing.T) {
 
 }
 
-func Test_WxPrePay(t *testing.T) {
+func Test_WxPrepay(t *testing.T) {
 	bodyStr := `
 	{
 		"e_id":10001,
@@ -129,12 +129,12 @@ func Test_WxPrePay(t *testing.T) {
 		"notify_url":"http://xiao.xinmiao.com",
 		"openid":"os2u9uPKLkCKL08FwCM6hQAQ_LtI"
 	}`
-	req, err := http.NewRequest(echo.POST, "/v3/wx/prepay", strings.NewReader(bodyStr))
+	req, err := http.NewRequest(echo.POST, "/v3/wx/Prepay", strings.NewReader(bodyStr))
 	test.Ok(t, err)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, wechat.PrePay(c))
+	test.Ok(t, wechat.Prepay(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
 	fmt.Printf("%+v", v)
@@ -181,7 +181,7 @@ func TestPing(t *testing.T) {
 	test.Equals(t, http.StatusOK, rec.Code)
 }
 
-func Test_PrePayEasy(t *testing.T) {
+func Test_WxPrepayEasy(t *testing.T) {
 	/*
 		localhost:5000/v3/wx/prepayeasy?app_id=&page_url=ttps%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping&prepay_param={"e_id":10001,"body":"xiaomiao test","total_fee":1,"trade_type":"JSAPI","notify_url":"http://xiao.xinmiao.com"}
 	*/
@@ -200,14 +200,14 @@ func Test_PrePayEasy(t *testing.T) {
 	test.Ok(t, err)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	test.Ok(t, wechat.PrePayEasy(c))
+	test.Ok(t, wechat.PrepayEasy(c))
 	test.Equals(t, http.StatusFound, rec.Code)
 	fmt.Printf("%+v", rec.HeaderMap)
 	//cookie:IPAY_WECHAT_PREPAY=%7B%22body%22%3A%22xiaomiao+test%22%2C%22total_fee%22%3A1%2C%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%2C%22trade_type%22%3A%22JSAPI%22%2C%22scene_info%22%3A%7B%7D%2C%22e_id%22%3A10001%7D; Path=/
 }
 
-func Test_PrepayOpenId(t *testing.T) {
-	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "071MDWbk0iH46o1h7mck0D6Qbk0MDWbW", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
+func Test_WxPrepayOpenId(t *testing.T) {
+	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "061kG3ts0n0E8e1Euxts07MYss0kG3tA", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
 	req, err := http.NewRequest(echo.GET, path, nil)
 	test.Ok(t, err)
 	rec := httptest.NewRecorder()

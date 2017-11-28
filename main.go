@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"lemon-ipay-api/alipay"
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/ipay"
 	"lemon-ipay-api/model"
@@ -71,7 +72,7 @@ func RegisterApi(e *echo.Echo) {
 	v3.POST("/query", ipay.Query)
 	v3.POST("/reverse", ipay.Reverse)
 	v3.POST("/refund", ipay.Refund)
-	v3.POST("/prepay", ipay.PrePay)
+	v3.POST("/Prepay", ipay.Prepay)
 
 	v3.GET("/record/:Id", ipay.GetRecord)
 
@@ -80,11 +81,17 @@ func RegisterApi(e *echo.Echo) {
 	wx.POST("/query", wechat.Query)
 	wx.POST("/reverse", wechat.Reverse)
 	wx.POST("/refund", wechat.Refund)
-	wx.POST("/prepay", wechat.PrePay)
+	wx.POST("/Prepay", wechat.Prepay)
 	wx.POST("/notify", wechat.Notify)
-	// wx.GET("/openid", wechat.WxOpenId)
-	// wx.GET("/ropenid/:appid", wechat.RedirectWithWxOpenId)
-	wx.GET("/prepayeasy", wechat.PrePayEasy)
+	wx.GET("/prepayeasy", wechat.PrepayEasy)
 	wx.GET("/prepayopenid", wechat.PrepayOpenId)
+
+	al := v3.Group("/al")
+	al.POST("/pay", alipay.Pay)
+	al.POST("/query", alipay.Query)
+	al.POST("/reverse", alipay.Reverse)
+	al.POST("/refund", alipay.Refund)
+	al.POST("/Prepay", alipay.Prepay)
+	//al.POST("/notify", alipay.Notify)
 
 }
