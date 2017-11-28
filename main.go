@@ -84,7 +84,7 @@ func RegisterApi(e *echo.Echo) {
 	wx.POST("/notify", wechat.Notify)
 	// wx.GET("/openid", wechat.WxOpenId)
 	// wx.GET("/ropenid/:appid", wechat.RedirectWithWxOpenId)
-	wx.POST("/prepayeasy", wechat.PrePayEasy)
+	wx.GET("/prepayeasy", wechat.PrePayEasy)
 	wx.GET("/prepayopenid", wechat.PrepayOpenId)
 
 }
