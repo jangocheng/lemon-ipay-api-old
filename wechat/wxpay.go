@@ -321,6 +321,7 @@ func SubNotify(xmlBody string) (result model.NotifyWechat, err error) {
 
 const (
 	IPAY_WECHAT_PREPAY       = "IPAY_WECHAT_PREPAY"
+	IPAY_WECHAT_PREPAY_INNER = "IPAY_WECHAT_PREPAY_INNER"
 	IPAY_WECHAT_PREPAY_ERROR = "IPAY_WECHAT_PREPAY_ERROR"
 	//IPAY_WECHAT_PREPAY_ERROR = "IPAY_WECHAT_PREPAY_ERROR"
 )
@@ -332,26 +333,40 @@ const (
 */
 func PrepayEasy(c echo.Context) error {
 
-	appId := c.QueryParam("app_id")
+	//appId := c.QueryParam("app_id")
 	pageUrl := c.QueryParam("page_url")
 	prepay_param := c.QueryParam("prepay_param")
 
+	reqDto := ReqPrepayDto{}
+	err := json.Unmarshal([]byte(prepay_param), &reqDto)
+	if err != nil {
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, pageUrl+"?"+q.Encode())
+	}
+	account, err := model.WxAccount{}.Get(reqDto.EId)
+	if err != nil {
+		q := make(url.Values)
+		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
+		return c.Redirect(http.StatusFound, pageUrl+"?"+q.Encode())
+	}
+
 	openIdUrlParam := &mpAuth.ReqDto{
-		AppId:       appId,
+		AppId:       account.AppId,
 		State:       "state",
 		RedirectUrl: fmt.Sprintf("%v/wx/%v", core.Env.HostUrl, "prepayopenid"),
 		PageUrl:     pageUrl,
 	}
 	reqUrl := mpAuth.GetUrlForAccessToken(openIdUrlParam)
 
-	SetCookie(IPAY_WECHAT_PREPAY, prepay_param, c)
+	SetCookie(IPAY_WECHAT_PREPAY_INNER, prepay_param, c)
 	return c.Redirect(http.StatusFound, reqUrl)
 }
 
 func PrepayOpenId(c echo.Context) error {
 	code := c.QueryParam("code")
 	reqUrl := c.QueryParam("reurl")
-	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY)
+	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY_INNER)
 	if err != nil {
 		q := make(url.Values)
 		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
