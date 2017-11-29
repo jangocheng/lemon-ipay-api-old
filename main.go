@@ -91,7 +91,7 @@ func RegisterApi(e *echo.Echo) {
 	al.POST("/query", alipay.Query)
 	al.POST("/reverse", alipay.Reverse)
 	al.POST("/refund", alipay.Refund)
-	al.POST("/Prepay", alipay.Prepay)
+	al.POST("/prepay", alipay.Prepay)
 	//al.POST("/notify", alipay.Notify)
 
 }
