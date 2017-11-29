@@ -30,12 +30,14 @@ type ReqPrepayDto struct {
 }
 
 type ReqPrepayEasyDto struct {
+	*wxpay.ReqPrepayDto
+	EId   int64  `json:"e_id"`
 	AppId string `json:"app_id" query:"app_id"` //required
 	Scope string `json:"scope" query:"scope"`   //option
 	State string `json:"state" query:"state"`   //option
 
 	//Secret      string `json:"secret"`
-	RedirectUrl  string        `json:"redirect_url" query:"redirect_url"`
-	PageUrl      string        `json:"page_url" query:"page_url"` //option
-	ReqPrepayDto *ReqPrepayDto `json:"prepay_param" query:"prepay_param"`
+	RedirectUrl string `json:"redirect_url" query:"redirect_url"`
+	PageUrl     string `json:"page_url" query:"page_url"` //option
+	//ReqPrepayDto *ReqPrepayDto `json:"prepay_param" query:"prepay_param"`
 }
