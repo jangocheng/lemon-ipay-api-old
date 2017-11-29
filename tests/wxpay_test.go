@@ -2,23 +2,17 @@ package tests
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"kit/test"
 	"lemon-ipay-api/wechat"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo"
 	"github.com/relax-space/go-kit/model"
-)
-
-var (
-	appId = flag.String("WXPAY_APPID", os.Getenv("WXPAY_APPID"), "WXPAY_APPID")
 )
 
 func Test_WxPay(t *testing.T) {
@@ -186,7 +180,6 @@ func Test_WxPrepayEasy(t *testing.T) {
 		localhost:5000/v3/wx/prepayeasy?app_id=&page_url=ttps%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping&prepay_param={"e_id":10001,"body":"xiaomiao test","total_fee":1,"trade_type":"JSAPI","notify_url":"http://xiao.xinmiao.com"}
 	*/
 	q := make(url.Values)
-	q.Set("app_id", *appId)
 	q.Set("page_url", url.QueryEscape("https://gateway.p2shop.cn/ipay/ping"))
 	q.Set("prepay_param", `{
 		"e_id":10001,
@@ -212,7 +205,7 @@ func Test_WxPrepayOpenId(t *testing.T) {
 	test.Ok(t, err)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	wechat.SetCookie(wechat.IPAY_WECHAT_PREPAY, "%7B%22body%22%3A%22xiaomiao+test%22%2C%22total_fee%22%3A1%2C%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%2C%22trade_type%22%3A%22JSAPI%22%2C%22scene_info%22%3A%7B%7D%2C%22e_id%22%3A10001%7D", c)
+	wechat.SetCookie(wechat.IPAY_WECHAT_PREPAY_INNER, "%7B%22body%22%3A%22xiaomiao+test%22%2C%22total_fee%22%3A1%2C%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%2C%22trade_type%22%3A%22JSAPI%22%2C%22scene_info%22%3A%7B%7D%2C%22e_id%22%3A10001%7D", c)
 	test.Ok(t, wechat.PrepayOpenId(c))
 	fmt.Printf("%+v", rec.HeaderMap)
 	test.Equals(t, http.StatusFound, rec.Code)
