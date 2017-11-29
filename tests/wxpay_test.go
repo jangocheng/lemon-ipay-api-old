@@ -182,6 +182,7 @@ func Test_WxPrepayEasy(t *testing.T) {
 	q := make(url.Values)
 	q.Set("page_url", url.QueryEscape("https://gateway.p2shop.cn/ipay/ping"))
 	q.Set("prepay_param", `{
+		"page_url":"https://ipay.p2shop.cn/#/pay",
 		"e_id":10001,
 		"body":"xiaomiao test",
 		"total_fee":1,

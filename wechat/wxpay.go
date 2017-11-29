@@ -334,33 +334,30 @@ const (
 func PrepayEasy(c echo.Context) error {
 
 	//appId := c.QueryParam("app_id")
-	pageUrl := c.QueryParam("page_url")
+	//pageUrl := c.QueryParam("page_url")
 	prepay_param := c.QueryParam("prepay_param")
 
-	reqDto := ReqPrepayDto{}
+	reqDto := ReqPrepayEasyDto{}
 	err := json.Unmarshal([]byte(prepay_param), &reqDto)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, pageUrl+"?"+q.Encode())
+		errString := "request param format is not right"
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, errString, c)
+		return c.String(http.StatusBadRequest, errString)
 	}
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, pageUrl+"?"+q.Encode())
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqDto.PageUrl)
 	}
 
 	openIdUrlParam := &mpAuth.ReqDto{
 		AppId:       account.AppId,
 		State:       "state",
 		RedirectUrl: fmt.Sprintf("%v/wx/%v", core.Env.HostUrl, "prepayopenid"),
-		PageUrl:     pageUrl,
+		PageUrl:     reqDto.PageUrl,
 	}
-	reqUrl := mpAuth.GetUrlForAccessToken(openIdUrlParam)
-
 	SetCookie(IPAY_WECHAT_PREPAY_INNER, prepay_param, c)
-	return c.Redirect(http.StatusFound, reqUrl)
+	return c.Redirect(http.StatusFound, mpAuth.GetUrlForAccessToken(openIdUrlParam))
 }
 
 func PrepayOpenId(c echo.Context) error {
@@ -368,34 +365,29 @@ func PrepayOpenId(c echo.Context) error {
 	reqUrl := c.QueryParam("reurl")
 	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY_INNER)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	param, err := url.QueryUnescape(cookie.Value)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
-	reqDto := ReqPrepayDto{}
+	reqDto := ReqPrepayEasyDto{}
 	err = json.Unmarshal([]byte(param), &reqDto)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	respDto, err := mpAuth.GetAccessTokenAndOpenId(code, account.AppId, account.Secret)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	reqDto.OpenId = respDto.OpenId
 
@@ -411,9 +403,8 @@ func PrepayOpenId(c echo.Context) error {
 	}
 	result, err := wxpay.Prepay(reqDto.ReqPrepayDto, &customDto)
 	if err != nil {
-		q := make(url.Values)
-		q.Set(IPAY_WECHAT_PREPAY_ERROR, err.Error())
-		return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		return c.Redirect(http.StatusFound, reqUrl)
 	}
 
 	prePayParam := make(map[string]interface{}, 0)
@@ -424,9 +415,7 @@ func PrepayOpenId(c echo.Context) error {
 	prePayParam["appId"] = result["appid"]
 	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
 
-	b, _ := json.Marshal(prePayParam)
-	q := make(url.Values)
-	q.Set(IPAY_WECHAT_PREPAY, string(b))
-	return c.Redirect(http.StatusFound, reqUrl+"?"+q.Encode())
+	SetCookieObj(IPAY_WECHAT_PREPAY, prePayParam, c)
+	return c.Redirect(http.StatusFound, reqUrl)
 
 }
