@@ -1,6 +1,7 @@
 package alipay
 
 import (
+	"fmt"
 	"lemon-ipay-api/model"
 	"net/http"
 
@@ -188,107 +189,29 @@ func Prepay(c echo.Context) error {
 	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 }
 
-// func Notify(c echo.Context) error {
+func Notify(c echo.Context) error {
+	reqDto := model.NotifyAlipay{}
+	if err := c.Bind(&reqDto); err != nil {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+	fmt.Printf("notify:%+v", reqDto)
+	// account, err := model.AlAccount{}.GetByAppId(reqDto.AppId)
+	// if err != nil {
+	// 	return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	// }
 
-// 	errResult := struct {
-// 		XMLName    xml.Name `xml:"xml"`
-// 		ReturnCode string   `xml:"return_code"`
-// 		ReturnMsg  string   `xml:"return_msg"`
-// 	}{xml.Name{}, "FAIL", ""}
+	// customDto := &alpay.ReqCustomerDto{
+	// 	PriKey: account.PriKey,
+	// 	PubKey: account.PubKey,
+	// }
+	// err = alpay.CheckNotifySign(reqDto.ReqNotifyDto, customDto)
+	// if err != nil {
+	// 	return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	// }
+	err := model.NotifyAlipay{}.InsertOne(&reqDto)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
 
-// 	body, err := ioutil.ReadAll(c.Request().Body)
-// 	if err != nil {
-// 		errResult.ReturnMsg = err.Error()
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-// 	xmlBody := string(body)
-// 	if len(xmlBody) == 0 {
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-// 	notifyDto, err := SubNotify(xmlBody)
-// 	if err != nil {
-// 		errResult.ReturnMsg = err.Error()
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-// 	if len(notifyDto.Attach) == 0 {
-// 		errResult.ReturnMsg = "attach is required"
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-
-// 	var attachObj struct {
-// 		EId int64 `json:"e_id"`
-// 	}
-// 	err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
-// 	if err != nil {
-// 		errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-
-// 	if attachObj.EId == 0 {
-// 		errResult.ReturnMsg = "e_id is missing in attach"
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-
-// 	account, err := model.AlAccount{}.Get(attachObj.EId)
-// 	if err != nil {
-// 		return c.JSON(http.StatusOK, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
-// 	}
-
-// 	s := structs.New(notifyDto)
-// 	s.TagName = "json"
-// 	mResult := s.Map()
-
-// 	//sign
-// 	signObj, ok := mResult["sign"]
-// 	if !ok {
-// 		errResult.ReturnMsg = "sign is missing"
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-// 	delete(mResult, "sign")
-// 	if !sign.CheckMd5Sign(base.JoinMapObject(mResult), account.Key, signObj.(string)) {
-// 		errResult.ReturnMsg = "The signature is invalid"
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-
-// 	err = model.NotifyWechat{}.InsertOne(&notifyDto)
-// 	if err != nil {
-// 		errResult.ReturnMsg = err.Error()
-// 		return c.XML(http.StatusBadRequest, errResult)
-// 	}
-
-// 	successResult := struct {
-// 		XMLName    xml.Name `xml:"xml"`
-// 		ReturnCode string   `xml:"return_code"`
-// 		ReturnMsg  string   `xml:"return_msg"`
-// 	}{xml.Name{}, "SUCCESS", "OK"}
-// 	return c.XML(http.StatusOK, successResult)
-// }
-
-// //sub_notify_url maybe exist in attach,
-// //if sub_notify_url exist,then redirect to sub_notify_url
-// func SubNotify(xmlBody string) (result model.NotifyWechat, err error) {
-// 	err = xml.Unmarshal([]byte(xmlBody), &result)
-// 	if err != nil {
-// 		err = fmt.Errorf("%v:%v", alpay.MESSAGE_ALIPAY, err)
-// 		return
-// 	}
-
-// 	if len(result.Attach) == 0 {
-// 		return
-// 	} else {
-// 		var attachObj struct {
-// 			SubNotifyUrl string `json:"sub_notify_url"`
-// 		}
-// 		err = json.Unmarshal([]byte(result.Attach), &attachObj)
-// 		if err != nil {
-// 			return
-// 		}
-
-// 		if len(attachObj.SubNotifyUrl) != 0 {
-// 			go func() {
-// 				_, err = httpreq.POST("", attachObj.SubNotifyUrl, result, nil)
-// 			}()
-// 		}
-// 	}
-// 	return
-// }
+	return c.String(http.StatusOK, "success")
+}
