@@ -36,3 +36,14 @@ func (AlAccount) Get(eId int64) (account AlAccount, err error) {
 	}
 	return
 }
+
+func (AlAccount) GetByAppId(appId string) (account AlAccount, err error) {
+	has, err := Db.Where("app_id =?", appId).Get(&account)
+	if err != nil {
+		return
+	} else if !has {
+		err = errors.New("no data has found.")
+		return
+	}
+	return
+}

@@ -33,7 +33,7 @@ func init() {
 	}
 	core.InitEnv(envParam)
 	model.Db = InitDB("mysql", envParam.ConnEnv)
-	model.Db.Sync(new(model.WxAccount), new(model.NotifyWechat))
+	model.Db.Sync(new(model.WxAccount), new(model.NotifyWechat), new(model.AlAccount), new(model.NotifyAlipay))
 }
 
 func InitDB(dialect, conn string) (newDb *xorm.Engine) {
@@ -92,6 +92,6 @@ func RegisterApi(e *echo.Echo) {
 	al.POST("/reverse", alipay.Reverse)
 	al.POST("/refund", alipay.Refund)
 	al.POST("/prepay", alipay.Prepay)
-	//al.POST("/notify", alipay.Notify)
+	al.POST("/notify", alipay.Notify)
 
 }

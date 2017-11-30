@@ -41,8 +41,8 @@ type NotifyWechat struct {
 	TimeEnd       string `xml:"time_end" json:"time_end" xorm:"time_end"`
 }
 
-func (NotifyWechat) Get(appId, mchId, outTradeNo string) (notify *NotifyWechat, err error) {
-	has, err := Db.Where("appId =?", appId).And("mch_id=?", mchId).And("out_trade_no=?", outTradeNo).Get(&notify)
+func (NotifyWechat) Get(appId, mchId, outTradeNo string) (notify NotifyWechat, err error) {
+	has, err := Db.Where("appid =?", appId).And("mch_id=?", mchId).And("out_trade_no=?", outTradeNo).Get(&notify)
 	if err != nil {
 		return
 	} else if !has {
@@ -53,7 +53,7 @@ func (NotifyWechat) Get(appId, mchId, outTradeNo string) (notify *NotifyWechat, 
 }
 
 func (NotifyWechat) InsertOne(notify *NotifyWechat) (err error) {
-	has, err := Db.Where("appId =?", notify.AppId).And("mch_id=?", notify.MchId).And("out_trade_no=?", notify.OutTradeNo).Get(&NotifyWechat{})
+	has, err := Db.Where("appid =?", notify.AppId).And("mch_id=?", notify.MchId).And("out_trade_no=?", notify.OutTradeNo).Get(&NotifyWechat{})
 	if err != nil {
 		return
 	} else if has { //success,when data exsits
