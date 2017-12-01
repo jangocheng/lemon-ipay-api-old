@@ -460,9 +460,7 @@ func validUrl(pageUrl string) (result string, err error) {
 		err = errors.New("page_url miss")
 		return
 	}
-	if !strings.Contains(result, "%v") {
-		err = errors.New("page_url param format is not correct.")
-		return
-	}
+	indexTag := strings.Index(result, "#")
+	result = result[0:indexTag] + "%v?" + result[indexTag:]
 	return
 }
