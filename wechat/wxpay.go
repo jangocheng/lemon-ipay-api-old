@@ -3,12 +3,14 @@ package wechat
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/relax-space/go-kitt/random"
@@ -348,8 +350,14 @@ func PrepayEasy(c echo.Context) error {
 		SetCookie(IPAY_WECHAT_PREPAY, "", c)
 		return c.String(http.StatusBadRequest, errString)
 	}
-	reqDto.PageUrl = reqDto.PageUrl + "?" + random.Uuid("")
-	//reqDto.PageUrl = fmt.Sprintf("https://ipay.p2shop.cn/%v?#/pay", random.Uuid(""))
+	urlStr, err := validUrl(reqDto.PageUrl)
+	if err != nil {
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
+		SetCookie(IPAY_WECHAT_PREPAY, "", c)
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	reqDto.PageUrl = fmt.Sprintf(urlStr, random.Uuid(""))
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
 		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
@@ -441,4 +449,20 @@ func PrepayOpenId(c echo.Context) error {
 
 	return c.Redirect(http.StatusFound, reqUrl)
 
+}
+
+func validUrl(pageUrl string) (result string, err error) {
+	result, err = url.QueryUnescape(pageUrl)
+	if err != nil {
+		return
+	}
+	if len(result) == 0 {
+		err = errors.New("page_url miss")
+		return
+	}
+	if !strings.Contains(result, "%v") {
+		err = errors.New("page_url param format is not correct.")
+		return
+	}
+	return
 }
