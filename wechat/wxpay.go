@@ -357,7 +357,7 @@ func PrepayEasy(c echo.Context) error {
 		SetCookie(IPAY_WECHAT_PREPAY, "", c)
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	reqDto.PageUrl = fmt.Sprintf(urlStr, random.Uuid(""))
+	reqDto.PageUrl = fmt.Sprintf(urlStr, random.Uuid("")) + "?" + random.Uuid("")
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
 		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
