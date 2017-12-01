@@ -176,12 +176,17 @@ func TestPing(t *testing.T) {
 }
 
 func Test_WxPrepayEasy(t *testing.T) {
+	result := "https://ipay.p2shop.cn/#/pay"
+	indexTag := strings.Index(result, "#")
+	result = result[0:indexTag] + "%v" + result[indexTag:]
+	fmt.Println(result)
+
 	/*
 		localhost:5000/v3/wx/prepayeasy?app_id=&page_url=ttps%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping&prepay_param={"e_id":10001,"body":"xiaomiao test","total_fee":1,"trade_type":"JSAPI","notify_url":"http://xiao.xinmiao.com"}
 	*/
 	q := make(url.Values)
 	q.Set("prepay_param", `{
-		"page_url":"https://ipay.p2shop.cn/%25v?#/pay",
+		"page_url":"https://ipay.p2shop.cn/#/pay",
 		"e_id":10001,
 		"body":"xiaomiao test",
 		"total_fee":1,
