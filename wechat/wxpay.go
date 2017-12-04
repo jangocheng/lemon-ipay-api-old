@@ -430,7 +430,7 @@ func PrepayOpenId(c echo.Context) error {
 		return c.Redirect(http.StatusFound, reqUrl)
 	}
 	reqDto.OpenId = respDto.OpenId
-
+	reqDto.Attach = "{\"e_id\":10001}"
 	//request Prepay
 	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
 		AppId:    account.AppId,
