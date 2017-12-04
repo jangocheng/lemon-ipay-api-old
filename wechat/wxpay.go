@@ -232,6 +232,7 @@ func Notify(c echo.Context) error {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 	xmlBody := string(body)
+	fmt.Printf("wx notify:%+v", xmlBody)
 	if len(xmlBody) == 0 {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
