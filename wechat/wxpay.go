@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"go-kitt/random"
 	"io/ioutil"
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"net/http"
 	"net/url"
+
+	"github.com/relax-space/go-kitt/random"
 
 	"github.com/relax-space/lemon-wxmp-sdk/mpAuth"
 
