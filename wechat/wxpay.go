@@ -441,7 +441,7 @@ func PrepayOpenId(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
-	reqDto.Attach = "1111"
+	//reqDto.Attach = "1111"
 	fmt.Printf("\nprepay1:%+v", cookie)
 	fmt.Printf("\nprepay2:%+v", reqDto.ReqPrepayDto)
 	result, err := wxpay.Prepay(reqDto.ReqPrepayDto, &customDto)
