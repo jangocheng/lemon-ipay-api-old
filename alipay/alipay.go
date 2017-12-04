@@ -194,7 +194,7 @@ func Notify(c echo.Context) error {
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	fmt.Printf("notify:%+v", reqDto)
+	fmt.Printf("al notify:%+v", reqDto)
 	// account, err := model.AlAccount{}.GetByAppId(reqDto.AppId)
 	// if err != nil {
 	// 	return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
