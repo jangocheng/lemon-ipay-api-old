@@ -9,12 +9,15 @@ import (
 	"lemon-ipay-api/model"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/relax-space/go-kitt/random"
 
 	"github.com/relax-space/lemon-wxmp-sdk/mpAuth"
 
+	"github.com/relax-space/go-kit/base"
 	"github.com/relax-space/go-kit/httpreq"
+	"github.com/relax-space/go-kit/sign"
 
 	wxpay "github.com/relax-space/lemon-wxpay-sdk"
 
@@ -207,16 +210,10 @@ func Notify(c echo.Context) error {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 	xmlBody := string(body)
-	fmt.Printf("wx notify:%+v", xmlBody)
-	if len(xmlBody) == 0 {
-		return c.XML(http.StatusBadRequest, errResult)
-	}
-	var notifyDto model.NotifyWechat
-	err = xml.Unmarshal([]byte(xmlBody), &notifyDto)
-	if err != nil {
-		err = fmt.Errorf("%v:%v", wxpay.MESSAGE_WECHAT, err)
-		return c.XML(http.StatusBadRequest, errResult)
-	}
+	// fmt.Printf("wx notify:%+v", xmlBody)
+	// if len(xmlBody) == 0 {
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
 
 	// notifyDto, err := SubNotify(xmlBody)
 	// if err != nil {
@@ -234,11 +231,17 @@ func Notify(c echo.Context) error {
 	// notifyDto.Attach, err = url.PathUnescape(notifyDto.Attach)
 	// if err != nil {
 	// 	errResult.ReturnMsg = "attach  is not encoded."
+
+	// 	fmt.Printf("prepay:%+v", attachObj)
+
 	// 	return c.XML(http.StatusBadRequest, errResult)
 	// }
 	// err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
 	// if err != nil {
 	// 	errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
+
+	// 	fmt.Printf("prepay:%+v", attachObj)
+
 	// 	return c.XML(http.StatusBadRequest, errResult)
 	// }
 
@@ -267,6 +270,13 @@ func Notify(c echo.Context) error {
 	// 	errResult.ReturnMsg = "The signature is invalid"
 	// 	return c.XML(http.StatusBadRequest, errResult)
 	// }
+
+	var notifyDto model.NotifyWechat
+	err = xml.Unmarshal([]byte(xmlBody), &notifyDto)
+	if err != nil {
+		err = fmt.Errorf("%v:%v", wxpay.MESSAGE_WECHAT, err)
+		return c.XML(http.StatusBadRequest, errResult)
+	}
 
 	err = model.NotifyWechat{}.InsertOne(&notifyDto)
 	if err != nil {
@@ -382,11 +392,36 @@ func PrepayOpenId(c echo.Context) error {
 	}
 	reqDto.OpenId = respDto.OpenId
 
-	prePayParam, err := GetPrepayParam(reqDto.ReqPrepayDto, &account)
+	//request Prepay
+	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
+		AppId:    account.AppId,
+		SubAppId: account.SubAppId,
+		MchId:    account.MchId,
+		SubMchId: account.SubMchId,
+	}
+	customDto := wxpay.ReqCustomerDto{
+		Key: account.Key,
+	}
+	reqDto.Attach = "good"
+	fmt.Printf("\nprepay1:%+v", cookie)
+	fmt.Printf("\nprepay2:%+v", reqDto.ReqPrepayDto)
+	result, err := wxpay.Prepay(reqDto.ReqPrepayDto, &customDto)
+
 	if err != nil {
-		setErrorCookie(err.Error(), c)
+		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
+		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
+		SetCookie(IPAY_WECHAT_PREPAY, "", c)
 		return c.Redirect(http.StatusFound, reqUrl)
 	}
+
+	prePayParam := make(map[string]interface{}, 0)
+	prePayParam["package"] = "prepay_id=" + base.ToString(result["prepay_id"])
+	prePayParam["timeStamp"] = base.ToString(time.Now().Unix())
+	prePayParam["nonceStr"] = result["nonce_str"]
+	prePayParam["signType"] = "MD5"
+	prePayParam["appId"] = result["appid"]
+	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
+
 	SetCookieObj(IPAY_WECHAT_PREPAY, prePayParam, c)
 	SetCookie(IPAY_WECHAT_PREPAY_ERROR, "", c)
 
