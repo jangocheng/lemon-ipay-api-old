@@ -25,8 +25,10 @@ func Pay(c echo.Context) error {
 		AppId:        account.AppId,
 		AppAuthToken: account.AuthToken,
 	}
-	reqDto.ExtendParams = &alpay.ExtendParams{
-		SysServiceProviderId: account.SysServiceProviderId,
+	if len(account.SysServiceProviderId) != 0 {
+		reqDto.ExtendParams = &alpay.ExtendParams{
+			SysServiceProviderId: account.SysServiceProviderId,
+		}
 	}
 	customDto := &alpay.ReqCustomerDto{
 		PriKey: account.PriKey,
@@ -175,8 +177,10 @@ func Prepay(c echo.Context) error {
 		AppId:        account.AppId,
 		AppAuthToken: account.AuthToken,
 	}
-	reqDto.ExtendParams = &alpay.ExtendParams{
-		SysServiceProviderId: account.SysServiceProviderId,
+	if len(account.SysServiceProviderId) != 0 {
+		reqDto.ExtendParams = &alpay.ExtendParams{
+			SysServiceProviderId: account.SysServiceProviderId,
+		}
 	}
 	customDto := &alpay.ReqCustomerDto{
 		PriKey: account.PriKey,
