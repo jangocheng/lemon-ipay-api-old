@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"lemon-ipay-api/alipay"
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/ipay"
@@ -58,6 +59,7 @@ func RegisterApi(e *echo.Echo) {
 		return c.String(http.StatusOK, "lemon epay")
 	})
 	e.GET("/ping", func(c echo.Context) error {
+		fmt.Println("pong")
 		return c.String(http.StatusOK, "pong")
 	})
 	track := func(next echo.HandlerFunc) echo.HandlerFunc {
