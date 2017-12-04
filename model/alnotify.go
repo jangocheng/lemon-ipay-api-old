@@ -2,42 +2,44 @@ package model
 
 import (
 	"errors"
+	"time"
 )
 
 type NotifyAlipay struct {
-	NotifyTime string `json:"notify_time"`
-	NotifyType string `json:"notify_type"`
-	NotifyId   string `json:"notify_id"`
-	SignType   string `json:"sign_type"`
-	Sign       string `json:"sign" xorm:"varchar(256)"`
+	NotifyTime string `json:"notify_time,omitempty"`
+	NotifyType string `json:"notify_type,omitempty"`
+	NotifyId   string `json:"notify_id,omitempty"`
+	SignType   string `json:"sign_type,omitempty"`
+	Sign       string `json:"sign,omitempty" xorm:"varchar(256)"`
 
-	TradeNo    string `json:"trade_no"`
-	AppId      string `json:"app_id" xorm:"appid"`
-	OutTradeNo string `json:"out_trade_no"`
-	OutBizNo   string `json:"out_biz_no"`
-	BuyerId    string `json:"buyer_id"`
+	TradeNo    string `json:"trade_no,omitempty"`
+	AppId      string `json:"app_id,omitempty" xorm:"appid"`
+	OutTradeNo string `json:"out_trade_no,omitempty"`
+	OutBizNo   string `json:"out_biz_no,omitempty"`
+	BuyerId    string `json:"buyer_id,omitempty"`
 
-	BuyerLogonId string  `json:"buyer_logon_id"`
-	SellerId     string  `json:"seller_id"`
-	SellerEmail  string  `json:"seller_email"`
-	TradeStatus  string  `json:"trade_status"`
-	TotalAmount  float64 `json:"total_amount"`
+	BuyerLogonId string  `json:"buyer_logon_id,omitempty"`
+	SellerId     string  `json:"seller_id,omitempty"`
+	SellerEmail  string  `json:"seller_email,omitempty"`
+	TradeStatus  string  `json:"trade_status,omitempty"`
+	TotalAmount  float64 `json:"total_amount,omitempty"`
 
-	ReceiptAmount  float64 `json:"receipt_amount"`
-	InvoiceAmount  float64 `json:"invoice_amount"`
-	BuyerPayAmount float64 `json:"buyer_pay_amount"`
-	PointAmount    float64 `json:"point_amount"`
-	RefundFee      float64 `json:"refund_fee"`
+	ReceiptAmount  float64 `json:"receipt_amount,omitempty"`
+	InvoiceAmount  float64 `json:"invoice_amount,omitempty"`
+	BuyerPayAmount float64 `json:"buyer_pay_amount,omitempty"`
+	PointAmount    float64 `json:"point_amount,omitempty"`
+	RefundFee      float64 `json:"refund_fee,omitempty"`
 
-	SendBackFee float64 `json:"send_back_fee"`
-	Subject     string  `json:"subject" xorm:"varchar(256)"`
-	Body        string  `json:"body" xorm:"varchar(400)"`
-	GmtCreate   string  `json:"gmt_create"`
-	GmtPayment  string  `json:"gmt_payment"`
+	SendBackFee float64 `json:"send_back_fee,omitempty"`
+	Subject     string  `json:"subject,omitempty" xorm:"varchar(256)"`
+	Body        string  `json:"body,omitempty" xorm:"varchar(400)"`
+	GmtCreate   string  `json:"gmt_create,omitempty"`
+	GmtPayment  string  `json:"gmt_payment,omitempty"`
 
-	GmtRefund    string `json:"gmt_refund"`
-	GmtClose     string `json:"gmt_close"`
-	FundBillList string `json:"fund_bill_list" xorm:"varchar(512)"`
+	GmtRefund    string    `json:"gmt_refund,omitempty"`
+	GmtClose     string    `json:"gmt_close,omitempty"`
+	FundBillList string    `json:"fund_bill_list,omitempty" xorm:"varchar(512)"`
+	CreatedAt    time.Time `xml:"created_at,omitempty" json:"created_at" xorm:"created"`
 }
 
 func (NotifyAlipay) Get(appId, outTradeNo string) (notify NotifyAlipay, err error) {

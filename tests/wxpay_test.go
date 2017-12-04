@@ -149,7 +149,7 @@ func Test_WxNotify(t *testing.T) {
 	<out_trade_no><![CDATA[1409811653]]></out_trade_no>
 	<result_code><![CDATA[SUCCESS]]></result_code>
 	<return_code><![CDATA[SUCCESS]]></return_code>
-	<sign><![CDATA[CDF756E879A802281624B691BEAEAEF4]]></sign>
+	<sign><![CDATA[7D24E7B803ED7574785872A50105046D]]></sign>
 	<sub_mch_id><![CDATA[10000100]]></sub_mch_id>
 	<time_end><![CDATA[20140903131540]]></time_end>
 	<total_fee>1</total_fee>
