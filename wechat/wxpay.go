@@ -19,7 +19,6 @@ import (
 
 	"github.com/relax-space/go-kit/httpreq"
 
-	"github.com/fatih/structs"
 	"github.com/relax-space/go-kit/base"
 	"github.com/relax-space/go-kit/sign"
 
@@ -236,55 +235,61 @@ func Notify(c echo.Context) error {
 	if len(xmlBody) == 0 {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
-	notifyDto, err := SubNotify(xmlBody)
+	// notifyDto, err := SubNotify(xmlBody)
+	// if err != nil {
+	// 	errResult.ReturnMsg = err.Error()
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
+	// if len(notifyDto.Attach) == 0 {
+	// 	errResult.ReturnMsg = "attach is required"
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
+
+	// var attachObj struct {
+	// 	EId int64 `json:"e_id"`
+	// }
+	// notifyDto.Attach, err = url.PathUnescape(notifyDto.Attach)
+	// if err != nil {
+	// 	errResult.ReturnMsg = "attach  is not encoded."
+	// 	fmt.Printf("prepay:%+v", attachObj)
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
+	// err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
+	// if err != nil {
+	// 	errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
+	// 	fmt.Printf("prepay:%+v", attachObj)
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
+
+	// if attachObj.EId == 0 {
+	// 	errResult.ReturnMsg = "e_id is missing in attach"
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
+
+	// account, err := model.WxAccount{}.Get(attachObj.EId)
+	// if err != nil {
+	// 	return c.JSON(http.StatusOK, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	// }
+
+	// s := structs.New(notifyDto)
+	// s.TagName = "json"
+	// mResult := s.Map()
+
+	// //sign
+	// signObj, ok := mResult["sign"]
+	// if !ok {
+	// 	errResult.ReturnMsg = "sign is missing"
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
+	// delete(mResult, "sign")
+	// if !sign.CheckMd5Sign(base.JoinMapObject(mResult), account.Key, signObj.(string)) {
+	// 	errResult.ReturnMsg = "The signature is invalid"
+	// 	return c.XML(http.StatusBadRequest, errResult)
+	// }
+	var notifyDto model.NotifyWechat
+	err = xml.Unmarshal([]byte(xmlBody), &notifyDto)
 	if err != nil {
-		errResult.ReturnMsg = err.Error()
-		return c.XML(http.StatusBadRequest, errResult)
-	}
-	if len(notifyDto.Attach) == 0 {
-		errResult.ReturnMsg = "attach is required"
-		return c.XML(http.StatusBadRequest, errResult)
-	}
-
-	var attachObj struct {
-		EId int64 `json:"e_id"`
-	}
-	notifyDto.Attach, err = url.PathUnescape(notifyDto.Attach)
-	if err != nil {
-		errResult.ReturnMsg = "attach  is not encoded."
-		fmt.Printf("prepay:%+v", attachObj)
-		return c.XML(http.StatusBadRequest, errResult)
-	}
-	err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
-	if err != nil {
-		errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
-		fmt.Printf("prepay:%+v", attachObj)
-		return c.XML(http.StatusBadRequest, errResult)
-	}
-
-	if attachObj.EId == 0 {
-		errResult.ReturnMsg = "e_id is missing in attach"
-		return c.XML(http.StatusBadRequest, errResult)
-	}
-
-	account, err := model.WxAccount{}.Get(attachObj.EId)
-	if err != nil {
-		return c.JSON(http.StatusOK, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
-	}
-
-	s := structs.New(notifyDto)
-	s.TagName = "json"
-	mResult := s.Map()
-
-	//sign
-	signObj, ok := mResult["sign"]
-	if !ok {
-		errResult.ReturnMsg = "sign is missing"
-		return c.XML(http.StatusBadRequest, errResult)
-	}
-	delete(mResult, "sign")
-	if !sign.CheckMd5Sign(base.JoinMapObject(mResult), account.Key, signObj.(string)) {
-		errResult.ReturnMsg = "The signature is invalid"
+		err = fmt.Errorf("%v:%v", wxpay.MESSAGE_WECHAT, err)
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 
