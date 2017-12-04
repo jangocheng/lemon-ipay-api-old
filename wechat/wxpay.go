@@ -249,6 +249,12 @@ func Notify(c echo.Context) error {
 	var attachObj struct {
 		EId int64 `json:"e_id"`
 	}
+	notifyDto.Attach, err = url.PathUnescape(notifyDto.Attach)
+	if err != nil {
+		errResult.ReturnMsg = "attach  is not encoded."
+		fmt.Printf("prepay:%+v", attachObj)
+		return c.XML(http.StatusBadRequest, errResult)
+	}
 	err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
 	if err != nil {
 		errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
