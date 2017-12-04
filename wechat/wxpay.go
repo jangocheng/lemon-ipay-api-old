@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"go-kitt/random"
 	"io/ioutil"
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"net/http"
 	"net/url"
-
-	"github.com/relax-space/go-kitt/random"
 
 	"github.com/relax-space/lemon-wxmp-sdk/mpAuth"
 
@@ -328,12 +327,6 @@ func PrepayEasy(c echo.Context) error {
 		setErrorCookie(err.Error(), c)
 		return c.String(http.StatusBadRequest, errString)
 	}
-	urlStr, err := validUrl(reqDto.PageUrl)
-	if err != nil {
-		setErrorCookie(err.Error(), c)
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	reqDto.PageUrl = fmt.Sprintf(urlStr, random.Uuid("")) + "?" + random.Uuid("")
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
 		setErrorCookie(err.Error(), c)
@@ -354,6 +347,12 @@ func PrepayEasy(c echo.Context) error {
 func PrepayOpenId(c echo.Context) error {
 	code := c.QueryParam("code")
 	reqUrl := c.QueryParam("reurl")
+	urlStr, err := validUrl(reqUrl)
+	if err != nil {
+		setErrorCookie(err.Error(), c)
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	reqUrl = fmt.Sprintf(urlStr, random.Uuid("")) + "?" + random.Uuid("")
 	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY_INNER)
 	if err != nil {
 		setErrorCookie(err.Error(), c)
