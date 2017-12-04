@@ -2,8 +2,10 @@ package alipay
 
 import (
 	"fmt"
+	"io/ioutil"
 	"lemon-ipay-api/model"
 	"net/http"
+	"time"
 
 	alpay "github.com/relax-space/lemon-alipay-sdk"
 
@@ -194,11 +196,19 @@ func Prepay(c echo.Context) error {
 }
 
 func Notify(c echo.Context) error {
+	fmt.Printf("\n%v-%v", time.Now(), "al notify")
+	body, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+	xmlBody := string(body)
+	fmt.Printf("\nwx notify:%+v", xmlBody)
+
 	reqDto := model.NotifyAlipay{}
 	if err := c.Bind(&reqDto); err != nil {
 		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	fmt.Printf("al notify:%+v", reqDto)
+	fmt.Printf("\nal notify:%+v", reqDto)
 	// account, err := model.AlAccount{}.GetByAppId(reqDto.AppId)
 	// if err != nil {
 	// 	return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
@@ -212,7 +222,7 @@ func Notify(c echo.Context) error {
 	// if err != nil {
 	// 	return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	// }
-	err := model.NotifyAlipay{}.InsertOne(&reqDto)
+	err = model.NotifyAlipay{}.InsertOne(&reqDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}

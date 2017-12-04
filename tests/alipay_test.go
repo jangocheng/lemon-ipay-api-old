@@ -31,7 +31,7 @@ func Test_AliPay(t *testing.T) {
 	test.Ok(t, alipay.Pay(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -51,7 +51,7 @@ func Test_AliRefund(t *testing.T) {
 	test.Ok(t, alipay.Refund(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -70,7 +70,7 @@ func Test_AliQuery(t *testing.T) {
 	test.Ok(t, alipay.Query(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -89,7 +89,7 @@ func Test_AliReverse(t *testing.T) {
 	test.Ok(t, alipay.Reverse(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -109,7 +109,7 @@ func Test_AliPrepay(t *testing.T) {
 	test.Ok(t, alipay.Prepay(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
