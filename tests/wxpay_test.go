@@ -31,7 +31,7 @@ func Test_WxPay(t *testing.T) {
 	test.Ok(t, wechat.Pay(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -51,7 +51,7 @@ func Test_WxRefund(t *testing.T) {
 	test.Ok(t, wechat.Refund(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -70,7 +70,7 @@ func Test_WxReverse(t *testing.T) {
 	test.Ok(t, wechat.Reverse(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -89,7 +89,7 @@ func Test_WxQuery(t *testing.T) {
 	test.Ok(t, wechat.Query(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -108,7 +108,7 @@ func Test_WxRefundQuery(t *testing.T) {
 	test.Ok(t, wechat.RefundQuery(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -131,7 +131,7 @@ func Test_WxPrepay(t *testing.T) {
 	test.Ok(t, wechat.Prepay(c))
 	v := model.Result{}
 	test.Ok(t, json.Unmarshal(rec.Body.Bytes(), &v))
-	fmt.Printf("%+v", v)
+	fmt.Printf("\n%+v", v)
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -162,7 +162,7 @@ func Test_WxNotify(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	test.Ok(t, wechat.Notify(c))
-	fmt.Printf("%+v", string(rec.Body.Bytes()))
+	fmt.Printf("\n%+v", string(rec.Body.Bytes()))
 	test.Equals(t, http.StatusOK, rec.Code)
 
 }
@@ -200,7 +200,7 @@ func Test_WxPrepayEasy(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	test.Ok(t, wechat.PrepayEasy(c))
-	fmt.Printf("%+v", rec.HeaderMap)
+	fmt.Printf("\n%+v", rec.HeaderMap)
 	test.Equals(t, http.StatusFound, rec.Code)
 	//cookie:IPAY_WECHAT_PREPAY=%7B%22body%22%3A%22xiaomiao+test%22%2C%22total_fee%22%3A1%2C%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%2C%22trade_type%22%3A%22JSAPI%22%2C%22scene_info%22%3A%7B%7D%2C%22e_id%22%3A10001%7D; Path=/
 }
@@ -213,7 +213,7 @@ func Test_WxPrepayOpenId(t *testing.T) {
 	c := echo.New().NewContext(req, rec)
 	wechat.SetCookie(wechat.IPAY_WECHAT_PREPAY_INNER, "%7B%0A%09%09%22page_url%22:%22https://ipay.p2shop.cn/#/pay%22,%0A%09%09%22attach%22:%22123%22,%0A%09%09%22e_id%22:10001,%0A%09%09%22body%22:%22xiaomiao%20test%22,%0A%09%09%22total_fee%22:1,%0A%09%09%22trade_type%22:%22JSAPI%22,%0A%09%09%22notify_url%22:%22http://xiao.xinmiao.com%22%0A%09%7D", c)
 	test.Ok(t, wechat.PrepayOpenId(c))
-	fmt.Printf("%+v", rec.HeaderMap)
+	fmt.Printf("\n%+v", rec.HeaderMap)
 	test.Equals(t, http.StatusFound, rec.Code)
 
 }

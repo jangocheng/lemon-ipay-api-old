@@ -218,11 +218,12 @@ func Prepay(c echo.Context) error {
 }
 
 func Notify(c echo.Context) error {
-
+	fmt.Printf("\n%v-%v", time.Now(), "wx notify")
 	errResult := struct {
 		XMLName    xml.Name `xml:"xml"`
 		ReturnCode string   `xml:"return_code"`
-		ReturnMsg  string   `xml:"return_msg"`
+
+		ReturnMsg string `xml:"return_msg"`
 	}{xml.Name{}, "FAIL", ""}
 
 	body, err := ioutil.ReadAll(c.Request().Body)
@@ -231,7 +232,7 @@ func Notify(c echo.Context) error {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 	xmlBody := string(body)
-	fmt.Printf("wx notify:%+v", xmlBody)
+	fmt.Printf("\nwx notify:%+v", xmlBody)
 	if len(xmlBody) == 0 {
 		return c.XML(http.StatusBadRequest, errResult)
 	}
@@ -251,13 +252,13 @@ func Notify(c echo.Context) error {
 	// notifyDto.Attach, err = url.PathUnescape(notifyDto.Attach)
 	// if err != nil {
 	// 	errResult.ReturnMsg = "attach  is not encoded."
-	// 	fmt.Printf("prepay:%+v", attachObj)
+	// 	fmt.Printf("\nprepay:%+v", attachObj)
 	// 	return c.XML(http.StatusBadRequest, errResult)
 	// }
 	// err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
 	// if err != nil {
 	// 	errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
-	// 	fmt.Printf("prepay:%+v", attachObj)
+	// 	fmt.Printf("\nprepay:%+v", attachObj)
 	// 	return c.XML(http.StatusBadRequest, errResult)
 	// }
 
@@ -441,6 +442,7 @@ func PrepayOpenId(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
+
 	//reqDto.Attach = "1111"
 	fmt.Printf("\nprepay1:%+v", cookie)
 	fmt.Printf("\nprepay2:%+v", reqDto.ReqPrepayDto)
