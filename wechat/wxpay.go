@@ -252,6 +252,7 @@ func Notify(c echo.Context) error {
 	err = json.Unmarshal([]byte(notifyDto.Attach), &attachObj)
 	if err != nil {
 		errResult.ReturnMsg = "The format of the attachment must be json and must contain e_id"
+		fmt.Printf("prepay:%+v", attachObj)
 		return c.XML(http.StatusBadRequest, errResult)
 	}
 
@@ -429,6 +430,7 @@ func PrepayOpenId(c echo.Context) error {
 	customDto := wxpay.ReqCustomerDto{
 		Key: account.Key,
 	}
+	fmt.Printf("\nprepay:%+v", reqDto.ReqPrepayDto)
 	result, err := wxpay.Prepay(reqDto.ReqPrepayDto, &customDto)
 	if err != nil {
 		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
