@@ -1,7 +1,10 @@
 package alipay
 
 import (
+	"encoding/xml"
 	"fmt"
+	"io/ioutil"
+	alipay "lemon-alipay-sdk"
 	"lemon-ipay-api/model"
 	"net/http"
 	"time"
@@ -203,12 +206,31 @@ func Notify(c echo.Context) error {
 	// xmlBody := string(body)
 	// fmt.Printf("\nwx notify:%+v", xmlBody)
 
-	reqDto := model.NotifyAlipay{}
-	if err := c.Bind(&reqDto); err != nil {
-		fmt.Printf("\nal err:%+v", err)
+	body, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	fmt.Printf("\nal notify:%+v", reqDto)
+	jsonBody := string(body)
+	if len(jsonBody) == 0 {
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: "no data"}})
+	}
+
+	fmt.Printf("\n%v", jsonBody)
+
+	var reqDto model.NotifyAlipay
+	err = xml.Unmarshal([]byte(jsonBody), &reqDto)
+	if err != nil {
+		fmt.Println(err)
+		err = fmt.Errorf("%v:%v", alipay.MESSAGE_ALIPAY, err)
+		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	}
+
+	// reqDto := model.NotifyAlipay{}
+	// if err := c.Bind(&reqDto); err != nil {
+	// 	fmt.Printf("\nal err:%+v", err)
+	// 	return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+	// }
+	// fmt.Printf("\nal notify:%+v", reqDto)
 	// account, err := model.AlAccount{}.GetByAppId(reqDto.AppId)
 	// if err != nil {
 	// 	return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
@@ -222,7 +244,7 @@ func Notify(c echo.Context) error {
 	// if err != nil {
 	// 	return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	// }
-	err := model.NotifyAlipay{}.InsertOne(&reqDto)
+	err = model.NotifyAlipay{}.InsertOne(&reqDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
