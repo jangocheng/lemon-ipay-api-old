@@ -18,23 +18,23 @@ type NotifyAlipay struct {
 	OutBizNo   string `json:"out_biz_no,omitempty"`
 	BuyerId    string `json:"buyer_id,omitempty"`
 
-	BuyerLogonId string  `json:"buyer_logon_id,omitempty"`
-	SellerId     string  `json:"seller_id,omitempty"`
-	SellerEmail  string  `json:"seller_email,omitempty"`
-	TradeStatus  string  `json:"trade_status,omitempty"`
-	TotalAmount  float64 `json:"total_amount,omitempty"`
+	BuyerLogonId string `json:"buyer_logon_id,omitempty"`
+	SellerId     string `json:"seller_id,omitempty"`
+	SellerEmail  string `json:"seller_email,omitempty"`
+	TradeStatus  string `json:"trade_status,omitempty"`
+	TotalAmount  string `json:"total_amount,omitempty"` //float64
 
-	ReceiptAmount  float64 `json:"receipt_amount,omitempty"`
-	InvoiceAmount  float64 `json:"invoice_amount,omitempty"`
-	BuyerPayAmount float64 `json:"buyer_pay_amount,omitempty"`
-	PointAmount    float64 `json:"point_amount,omitempty"`
-	RefundFee      float64 `json:"refund_fee,omitempty"`
+	ReceiptAmount  string `json:"receipt_amount,omitempty"`   //float64
+	InvoiceAmount  string `json:"invoice_amount,omitempty"`   //float64
+	BuyerPayAmount string `json:"buyer_pay_amount,omitempty"` //float64
+	PointAmount    string `json:"point_amount,omitempty"`     //float64
+	RefundFee      string `json:"refund_fee,omitempty"`       //float64
 
-	SendBackFee float64 `json:"send_back_fee,omitempty"`
-	Subject     string  `json:"subject,omitempty" xorm:"varchar(256)"`
-	Body        string  `json:"body,omitempty" xorm:"varchar(400)"`
-	GmtCreate   string  `json:"gmt_create,omitempty"`
-	GmtPayment  string  `json:"gmt_payment,omitempty"`
+	SendBackFee string `json:"send_back_fee,omitempty"` //float64
+	Subject     string `json:"subject,omitempty" xorm:"varchar(256)"`
+	Body        string `json:"body,omitempty" xorm:"varchar(400)"`
+	GmtCreate   string `json:"gmt_create,omitempty"`
+	GmtPayment  string `json:"gmt_payment,omitempty"`
 
 	GmtRefund    string    `json:"gmt_refund,omitempty"`
 	GmtClose     string    `json:"gmt_close,omitempty"`
