@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
-	alipay "lemon-alipay-sdk"
 	"lemon-ipay-api/model"
 	"net/http"
 	"time"
@@ -221,7 +220,7 @@ func Notify(c echo.Context) error {
 	err = xml.Unmarshal([]byte(jsonBody), &reqDto)
 	if err != nil {
 		fmt.Println(err)
-		err = fmt.Errorf("%v:%v", alipay.MESSAGE_ALIPAY, err)
+		err = fmt.Errorf("%v:%v", alpay.MESSAGE_ALIPAY, err)
 		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 
