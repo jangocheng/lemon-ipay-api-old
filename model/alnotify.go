@@ -39,7 +39,7 @@ type NotifyAlipay struct {
 	GmtRefund    string    `json:"gmt_refund,omitempty" form:"gmt_refund,omitempty"`
 	GmtClose     string    `json:"gmt_close,omitempty" form:"gmt_close,omitempty"`
 	FundBillList string    `json:"fund_bill_list,omitempty" form:"fund_bill_list,omitempty" xorm:"varchar(512)"`
-	CreatedAt    time.Time `json:"created_at" xorm:"created"`
+	CreatedAt    time.Time `json:"created_at" form:"created_at,omitempty" xorm:"created"`
 }
 
 func (NotifyAlipay) Get(appId, outTradeNo string) (notify NotifyAlipay, err error) {
