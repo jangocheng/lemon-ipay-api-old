@@ -205,6 +205,7 @@ func Notify(c echo.Context) error {
 
 	reqDto := model.NotifyAlipay{}
 	if err := c.Bind(&reqDto); err != nil {
+		fmt.Printf("\nal err:%+v", err)
 		return c.JSON(http.StatusBadRequest, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
 	fmt.Printf("\nal notify:%+v", reqDto)
