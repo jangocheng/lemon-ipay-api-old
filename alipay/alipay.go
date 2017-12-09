@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/relax-space/go-kit/base"
-	"github.com/relax-space/go-kitt/mapstruct"
 	alpay "github.com/relax-space/lemon-alipay-sdk"
 
 	"github.com/labstack/echo"
@@ -188,22 +186,6 @@ func Prepay(c echo.Context) error {
 	return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 }
 
-func QueryCommon(account model.AlAccount, outTradeNo string) (result *alpay.RespQueryDto, err error) {
-	reqDto := ReqQueryDto{}
-	reqDto.ReqBaseDto = &alpay.ReqBaseDto{
-		AppId:        account.AppId,
-		AppAuthToken: account.AuthToken,
-	}
-
-	customDto := &alpay.ReqCustomerDto{
-		PriKey: account.PriKey,
-		PubKey: account.PubKey,
-	}
-	reqDto.OutTradeNo = outTradeNo
-	result, err = alpay.Query(reqDto.ReqQueryDto, customDto)
-	return
-}
-
 func Notify(c echo.Context) error {
 	fmt.Printf("\n%v-%v", time.Now(), "al notify")
 	sbody, err := ioutil.ReadAll(c.Request().Body)
@@ -217,58 +199,23 @@ func Notify(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "failure")
 	}
 
-	mapParam := base.ParseMapObjectEncode(formParam)
 	var reqDto model.NotifyAlipay
-	err = mapstruct.Decode(mapParam, &reqDto)
-	if err != nil {
-		fmt.Printf("\n%v-%v", time.Now(), err.Error())
-		return c.String(http.StatusBadRequest, "failure")
-	}
+	reqDto.Body = formParam
 
-	// //0.get account info
-	// nBody := reqDto.Body
-
-	// bodyMap := base.ParseMapObjectEncode(nBody)
-	// var eId int64
-	// var flag bool
-	// if eIdObj, ok := bodyMap["e_id"]; ok {
-	// 	if eId, err = strconv.ParseInt(eIdObj.(string), 10, 64); err == nil {
-	// 		flag = true
-	// 	}
-	// }
-	// if !flag {
-	// 	fmt.Printf("\n%v-%v", time.Now(), "e_id is not existed in param(param name:body)")
-	// 	return c.String(http.StatusBadRequest, "failure")
-	// }
-
-	// account, err := model.AlAccount{}.Get(eId)
+	// var reqDto model.NotifyAlipay
+	// mapParam := base.ParseMapObjectEncode(formParam)
+	// err = mapstruct.Decode(mapParam, &reqDto)
 	// if err != nil {
 	// 	fmt.Printf("\n%v-%v", time.Now(), err.Error())
 	// 	return c.String(http.StatusBadRequest, "failure")
 	// }
-
-	// //1.valid sign
-	// signStr := reqDto.Sign
-	// delete(mapParam, "sign")
-	// delete(mapParam, "sign_type")
-
-	// if !sign.CheckSha1Sign(base.JoinMapObjectEncode(mapParam), signStr, account.PubKey) {
-	// 	fmt.Printf("\n%v-%v", time.Now(), "sign valid failure")
-	// 	return c.String(http.StatusBadRequest, "failure")
-	// }
-
-	// //2.valid data
-	// queryDto, err := QueryCommon(account, reqDto.OutTradeNo)
-	// if err != nil {
+	// //1.validate
+	// if err = ValidNotify(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
 	// 	fmt.Printf("\n%v-%v", time.Now(), err.Error())
 	// 	return c.String(http.StatusBadRequest, "failure")
 	// }
-	// if !(queryDto.TotalAmount == reqDto.TotalAmount) {
-	// 	fmt.Printf("\n%v-%v", time.Now(), "amount is exception")
-	// 	return c.String(http.StatusBadRequest, "failure")
-	// }
 
-	//3.save notify info
+	//2.save notify info
 	err = model.NotifyAlipay{}.InsertOne(&reqDto)
 	if err != nil {
 		fmt.Printf("\n%v-%v", time.Now(), err.Error())
