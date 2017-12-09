@@ -2,11 +2,9 @@ package alipay
 
 import (
 	"fmt"
-	"go-kit/sign"
 	"io/ioutil"
 	"lemon-ipay-api/model"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/relax-space/go-kit/base"
@@ -227,48 +225,48 @@ func Notify(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "failure")
 	}
 
-	//0.get account info
-	nBody := reqDto.Body
+	// //0.get account info
+	// nBody := reqDto.Body
 
-	bodyMap := base.ParseMapObjectEncode(nBody)
-	var eId int64
-	var flag bool
-	if eIdObj, ok := bodyMap["e_id"]; ok {
-		if eId, err = strconv.ParseInt(eIdObj.(string), 10, 64); err == nil {
-			flag = true
-		}
-	}
-	if !flag {
-		fmt.Printf("\n%v-%v", time.Now(), "e_id is not existed in param(param name:body)")
-		return c.String(http.StatusBadRequest, "failure")
-	}
+	// bodyMap := base.ParseMapObjectEncode(nBody)
+	// var eId int64
+	// var flag bool
+	// if eIdObj, ok := bodyMap["e_id"]; ok {
+	// 	if eId, err = strconv.ParseInt(eIdObj.(string), 10, 64); err == nil {
+	// 		flag = true
+	// 	}
+	// }
+	// if !flag {
+	// 	fmt.Printf("\n%v-%v", time.Now(), "e_id is not existed in param(param name:body)")
+	// 	return c.String(http.StatusBadRequest, "failure")
+	// }
 
-	account, err := model.AlAccount{}.Get(eId)
-	if err != nil {
-		fmt.Printf("\n%v-%v", time.Now(), err.Error())
-		return c.String(http.StatusBadRequest, "failure")
-	}
+	// account, err := model.AlAccount{}.Get(eId)
+	// if err != nil {
+	// 	fmt.Printf("\n%v-%v", time.Now(), err.Error())
+	// 	return c.String(http.StatusBadRequest, "failure")
+	// }
 
-	//1.valid sign
-	signStr := reqDto.Sign
-	delete(mapParam, "sign")
-	delete(mapParam, "sign_type")
+	// //1.valid sign
+	// signStr := reqDto.Sign
+	// delete(mapParam, "sign")
+	// delete(mapParam, "sign_type")
 
-	if !sign.CheckSha1Sign(base.JoinMapObjectEncode(mapParam), signStr, account.PubKey) {
-		fmt.Printf("\n%v-%v", time.Now(), "sign valid failure")
-		return c.String(http.StatusBadRequest, "failure")
-	}
+	// if !sign.CheckSha1Sign(base.JoinMapObjectEncode(mapParam), signStr, account.PubKey) {
+	// 	fmt.Printf("\n%v-%v", time.Now(), "sign valid failure")
+	// 	return c.String(http.StatusBadRequest, "failure")
+	// }
 
-	//2.valid data
-	queryDto, err := QueryCommon(account, reqDto.OutTradeNo)
-	if err != nil {
-		fmt.Printf("\n%v-%v", time.Now(), err.Error())
-		return c.String(http.StatusBadRequest, "failure")
-	}
-	if !(queryDto.TotalAmount == reqDto.TotalAmount) {
-		fmt.Printf("\n%v-%v", time.Now(), "amount is exception")
-		return c.String(http.StatusBadRequest, "failure")
-	}
+	// //2.valid data
+	// queryDto, err := QueryCommon(account, reqDto.OutTradeNo)
+	// if err != nil {
+	// 	fmt.Printf("\n%v-%v", time.Now(), err.Error())
+	// 	return c.String(http.StatusBadRequest, "failure")
+	// }
+	// if !(queryDto.TotalAmount == reqDto.TotalAmount) {
+	// 	fmt.Printf("\n%v-%v", time.Now(), "amount is exception")
+	// 	return c.String(http.StatusBadRequest, "failure")
+	// }
 
 	//3.save notify info
 	err = model.NotifyAlipay{}.InsertOne(&reqDto)
