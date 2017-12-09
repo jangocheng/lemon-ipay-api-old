@@ -28,8 +28,11 @@ func QueryCommon(account model.AlAccount, outTradeNo string) (result *alpay.Resp
 }
 
 func ValidNotify(body, signParam, outTradeNo, totalAmount string, mapParam map[string]interface{}) (err error) {
+
+	fmt.Println("body", body)
 	//0.get account info
 	bodyMap := base.ParseMapObjectEncode(body)
+	fmt.Printf("after body:%+v", bodyMap)
 	var eId int64
 	var flag bool
 	if eIdObj, ok := bodyMap["e_id"]; ok {
