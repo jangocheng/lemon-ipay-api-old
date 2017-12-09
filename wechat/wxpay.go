@@ -51,9 +51,10 @@ func Pay(c echo.Context) error {
 	result, err := wxpay.Pay(reqDto.ReqPayDto, &customDto)
 	if err != nil {
 		if err.Error() == wxpay.MESSAGE_PAYING {
+			outTradeNo := result["out_trade_no"].(string)
 			queryDto := wxpay.ReqQueryDto{
 				ReqBaseDto: reqDto.ReqBaseDto,
-				OutTradeNo: result["out_trade_no"].(string),
+				OutTradeNo: outTradeNo,
 			}
 			result, err = wxpay.LoopQuery(&queryDto, &customDto, 40, 2)
 			if err == nil {
@@ -61,10 +62,14 @@ func Pay(c echo.Context) error {
 			} else {
 				reverseDto := wxpay.ReqReverseDto{
 					ReqBaseDto: reqDto.ReqBaseDto,
-					OutTradeNo: result["out_trade_no"].(string),
+					OutTradeNo: outTradeNo,
 				}
-				_, err = wxpay.Reverse(&reverseDto, &customDto, 10, 10)
-				return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+				if _, err = wxpay.Reverse(&reverseDto, &customDto, 10, 10); err != nil {
+					return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+				} else {
+					return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: "reverse sucess"}})
+				}
+
 			}
 		} else {
 			return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})

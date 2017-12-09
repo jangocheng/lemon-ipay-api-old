@@ -2,10 +2,10 @@ FROM jaehue/golang-onbuild
 MAINTAINER jang.jaehue@eland.co.kr
 
 # install go packages
-RUN go get -u github.com/relax-space/lemon-wxpay-sdk && \
+RUN go get -u github.com/relax-space/go-kit/... && \
+    go get -u github.com/relax-space/lemon-wxpay-sdk && \
     go get -u github.com/relax-space/lemon-wxmp-sdk/... && \
-    go get -u github.com/relax-space/lemon-alipay-sdk && \
-    go get -u github.com/relax-space/go-kit/...
+    go get -u github.com/relax-space/lemon-alipay-sdk
 
 
 # add application

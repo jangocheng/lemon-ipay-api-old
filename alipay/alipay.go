@@ -6,10 +6,11 @@ import (
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"net/http"
-	"net/url"
 	"time"
 
-	alpay "github.com/relax-space/lemon-alipay-sdk"
+	"github.com/relax-space/go-kit/log"
+
+	paysdk "github.com/relax-space/lemon-alipay-sdk"
 
 	"github.com/labstack/echo"
 	"github.com/relax-space/go-kit/base"
@@ -26,37 +27,41 @@ func Pay(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = &alpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
 		AppId:        account.AppId,
 		AppAuthToken: account.AuthToken,
 	}
 	if len(account.SysServiceProviderId) != 0 {
-		reqDto.ExtendParams = &alpay.ExtendParams{
+		reqDto.ExtendParams = &paysdk.ExtendParams{
 			SysServiceProviderId: account.SysServiceProviderId,
 		}
 	}
-	customDto := &alpay.ReqCustomerDto{
+	customDto := &paysdk.ReqCustomerDto{
 		PriKey: account.PriKey,
 		PubKey: account.PubKey,
 	}
 
-	result, err := alpay.Pay(reqDto.ReqPayDto, customDto)
+	result, err := paysdk.Pay(reqDto.ReqPayDto, customDto)
 	if err != nil {
-		if err.Error() == alpay.MESSAGE_PAYING {
-			queryDto := alpay.ReqQueryDto{
+		if err.Error() == paysdk.MESSAGE_PAYING {
+			outTradeNo := result.OutTradeNo
+			queryDto := paysdk.ReqQueryDto{
 				ReqBaseDto: reqDto.ReqBaseDto,
-				OutTradeNo: result.OutTradeNo,
+				OutTradeNo: outTradeNo,
 			}
-			result, err = alpay.LoopQuery(&queryDto, customDto, 40, 2)
+			result, err = paysdk.LoopQuery(&queryDto, customDto, 40, 2)
 			if err == nil {
 				return c.JSON(http.StatusOK, kmodel.Result{Success: true, Result: result})
 			} else {
-				reverseDto := alpay.ReqReverseDto{
+				reverseDto := paysdk.ReqReverseDto{
 					ReqBaseDto: reqDto.ReqBaseDto,
-					OutTradeNo: result.OutTradeNo,
+					OutTradeNo: outTradeNo,
 				}
-				_, err = alpay.Reverse(&reverseDto, customDto, 10, 10)
-				return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+				if _, err = paysdk.Reverse(&reverseDto, customDto, 10, 10); err != nil {
+					return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
+				} else {
+					return c.JSON(http.StatusOK, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: "reverse success"}})
+				}
 			}
 		} else {
 			return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
@@ -90,16 +95,16 @@ func Refund(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = &alpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
 		AppId:        account.AppId,
 		AppAuthToken: account.AuthToken,
 	}
 
-	customDto := &alpay.ReqCustomerDto{
+	customDto := &paysdk.ReqCustomerDto{
 		PriKey: account.PriKey,
 		PubKey: account.PubKey,
 	}
-	result, err := alpay.Refund(reqDto.ReqRefundDto, customDto)
+	result, err := paysdk.Refund(reqDto.ReqRefundDto, customDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 
@@ -116,16 +121,16 @@ func Reverse(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = &alpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
 		AppId:        account.AppId,
 		AppAuthToken: account.AuthToken,
 	}
 
-	customDto := &alpay.ReqCustomerDto{
+	customDto := &paysdk.ReqCustomerDto{
 		PriKey: account.PriKey,
 		PubKey: account.PubKey,
 	}
-	result, err := alpay.Reverse(reqDto.ReqReverseDto, customDto, 10, 10)
+	result, err := paysdk.Reverse(reqDto.ReqReverseDto, customDto, 10, 10)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 
@@ -143,16 +148,16 @@ func Reverse(c echo.Context) error {
 // 	if err != nil {
 // 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 // 	}
-// 	reqDto.ReqBaseDto = &alpay.ReqBaseDto{
+// 	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
 // 		AppId:        account.AppId,
 // 		AppAuthToken: account.AuthToken,
 // 	}
 
-// 	customDto := &alpay.ReqCustomerDto{
+// 	customDto := &paysdk.ReqCustomerDto{
 // 		PriKey: account.PriKey,
 // 		PubKey: account.PubKey,
 // 	}
-// 	result, err := alpay.RefundQuery(reqDto.ReqRefundQueryDto, customDto)
+// 	result, err := paysdk.RefundQuery(reqDto.ReqRefundQueryDto, customDto)
 // 	if err != nil {
 // 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 // 	}
@@ -169,20 +174,20 @@ func Prepay(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	reqDto.ReqBaseDto = &alpay.ReqBaseDto{
+	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
 		AppId:        account.AppId,
 		AppAuthToken: account.AuthToken,
 	}
 	if len(account.SysServiceProviderId) != 0 {
-		reqDto.ExtendParams = &alpay.ExtendParams{
+		reqDto.ExtendParams = &paysdk.ExtendParams{
 			SysServiceProviderId: account.SysServiceProviderId,
 		}
 	}
-	customDto := &alpay.ReqCustomerDto{
+	customDto := &paysdk.ReqCustomerDto{
 		PriKey: account.PriKey,
 		PubKey: account.PubKey,
 	}
-	result, err := alpay.Prepay(reqDto.ReqPrepayDto, customDto)
+	result, err := paysdk.Prepay(reqDto.ReqPrepayDto, customDto)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -190,44 +195,35 @@ func Prepay(c echo.Context) error {
 }
 
 func Notify(c echo.Context) error {
-	fmt.Printf("\n%v-%v", time.Now(), "al notify")
+	fmt.Printf("\n%v-%v", time.Now(), "al notify received.")
 	sbody, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		fmt.Printf("\n%v-%v", time.Now(), err.Error())
+		log.Error(err)
 		return c.String(http.StatusBadRequest, "failure")
 	}
 	formParam := string(sbody)
 	if len(formParam) == 0 {
-		fmt.Printf("\n%v-%v", time.Now(), "param is empty")
+		log.Error("param is empty")
 		return c.String(http.StatusBadRequest, "failure")
 	}
-	formParam = url.QueryEscape(formParam)
-
-	// var reqDto model.NotifyAlipay
-	// reqDto.Body = formParam
-
 	var reqDto model.NotifyAlipay
-	mapParam := base.ParseMapObject(formParam)
+	mapParam := base.ParseMapObjectEncode(formParam, "&", "=")
 	err = core.Decode(mapParam, &reqDto)
 	if err != nil {
-		fmt.Printf("\n%v-%v", time.Now(), err.Error())
+		log.Error(err)
 		return c.String(http.StatusBadRequest, "failure")
 	}
 
-	fmt.Printf("\nmapParam1:%v", formParam)
-	fmt.Printf("\nmapParam:%+v", base.ParseMapObject(formParam))
-	fmt.Printf("\nreqDto:%+v", reqDto)
 	//1.validate
 	if err = ValidNotify(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
-		fmt.Printf("\n%v-%v", time.Now(), err.Error())
-
+		log.Error(err)
 		return c.String(http.StatusBadRequest, "failure")
 	}
 
 	//2.save notify info
 	err = model.NotifyAlipay{}.InsertOne(&reqDto)
 	if err != nil {
-		fmt.Printf("\n%v-%v", time.Now(), err.Error())
+		log.Error(err)
 		return c.String(http.StatusInternalServerError, "failure")
 	}
 	return c.String(http.StatusOK, "success")

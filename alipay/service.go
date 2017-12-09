@@ -2,38 +2,35 @@ package alipay
 
 import (
 	"errors"
-	"fmt"
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"strconv"
 
 	"github.com/relax-space/go-kit/base"
 	"github.com/relax-space/go-kit/sign"
-	alpay "github.com/relax-space/lemon-alipay-sdk"
+	paysdk "github.com/relax-space/lemon-alipay-sdk"
 )
 
-func QueryCommon(account model.AlAccount, outTradeNo string) (result *alpay.RespQueryDto, err error) {
-	reqDto := ReqQueryDto{}
-	reqDto.ReqBaseDto = &alpay.ReqBaseDto{
+func QueryCommon(account model.AlAccount, outTradeNo string) (result *paysdk.RespQueryDto, err error) {
+	var reqDto paysdk.ReqQueryDto
+	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
 		AppId:        account.AppId,
 		AppAuthToken: account.AuthToken,
 	}
 
-	customDto := &alpay.ReqCustomerDto{
+	customDto := &paysdk.ReqCustomerDto{
 		PriKey: account.PriKey,
 		PubKey: account.PubKey,
 	}
 	reqDto.OutTradeNo = outTradeNo
-	result, err = alpay.Query(reqDto.ReqQueryDto, customDto)
+	result, err = paysdk.Query(&reqDto, customDto)
 	return
 }
 
 func ValidNotify(body, signParam, outTradeNo, totalAmount string, mapParam map[string]interface{}) (err error) {
 
-	fmt.Println("body", body)
 	//0.get account info
-	bodyMap := base.ParseMapObjectEncode(body, "&", core.NOTIFY_BODY_SEP)
-	fmt.Printf("after body:%+v", bodyMap)
+	bodyMap := base.ParseMapObject(body, "&", core.NOTIFY_BODY_SEP)
 	var eId int64
 	var flag bool
 	if eIdObj, ok := bodyMap["e_id"]; ok {
@@ -55,11 +52,8 @@ func ValidNotify(body, signParam, outTradeNo, totalAmount string, mapParam map[s
 	signStr := signParam
 	delete(mapParam, "sign")
 	delete(mapParam, "sign_type")
-	fmt.Printf("\test:%v", base.JoinMapObjectEncode(mapParam))
-	fmt.Printf("\npubkey:%v", account.PubKey)
-	fmt.Printf("\nsignStr:%v", signStr)
 
-	if !sign.CheckSha1Sign(base.JoinMapObjectEncode(mapParam), signStr, account.PubKey) {
+	if !sign.CheckSha1Sign(base.JoinMapObject(mapParam), signStr, account.PubKey) {
 		err = errors.New("sign valid failure")
 		return
 	}
