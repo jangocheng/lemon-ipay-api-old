@@ -221,12 +221,11 @@ func Test_WxPrepayEasy(t *testing.T) {
 	q := make(url.Values)
 	q.Set("prepay_param", `{
 		"page_url":"https://ipay.p2shop.cn/#/pay",
-		"attach":"123",
-		"e_id":10001,
+		"attach":"e_id||||10001",
 		"body":"xiaomiao test",
 		"total_fee":1,
 		"trade_type":"JSAPI",
-		"notify_url":"http://xiao.xinmiao.com"
+		"notify_url":"https://xiao.xinmiao.com"
 	}`)
 
 	req, err := http.NewRequest(echo.GET, "/v3/wx/prepayeasy?"+q.Encode(), nil)
@@ -240,12 +239,25 @@ func Test_WxPrepayEasy(t *testing.T) {
 }
 
 func Test_WxPrepayOpenId(t *testing.T) {
-	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "061kG3ts0n0E8e1Euxts07MYss0kG3tA", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
+	path := fmt.Sprintf("/v3/wx/prepayopenid?code=%v&reurl=%v", "081YsUt32WVM9M0y1Nv32BvXt32YsUt-", "https%3A%2F%2Fgateway.p2shop.cn%2Fipay%2Fping")
 	req, err := http.NewRequest(echo.GET, path, nil)
 	test.Ok(t, err)
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
-	wechat.SetCookie(wechat.IPAY_WECHAT_PREPAY_INNER, "%7B%0A%09%09%22page_url%22:%22https://ipay.p2shop.cn/#/pay%22,%0A%09%09%22attach%22:%22123%22,%0A%09%09%22e_id%22:10001,%0A%09%09%22body%22:%22xiaomiao%20test%22,%0A%09%09%22total_fee%22:1,%0A%09%09%22trade_type%22:%22JSAPI%22,%0A%09%09%22notify_url%22:%22http://xiao.xinmiao.com%22%0A%09%7D", c)
+	cookie := new(http.Cookie)
+	cookie.Name = wechat.IPAY_WECHAT_PREPAY_INNER
+	value := url.QueryEscape(`{
+		"page_url":"https://ipay.p2shop.cn/#/pay",
+		"attach":"e_id||||10001",
+		"e_id":10001,
+		"body":"xiaomiao test",
+		"total_fee":1,
+		"trade_type":"JSAPI",
+		"notify_url":"http://xiao.xinmiao.com"
+	}`)
+	cookie.Value = value
+	cookie.Path = "/"
+	c.SetCookie(cookie)
 	test.Ok(t, wechat.PrepayOpenId(c))
 	fmt.Printf("\n%+v", rec.HeaderMap)
 	test.Equals(t, http.StatusFound, rec.Code)

@@ -172,6 +172,9 @@ func PrepayReqParam(c echo.Context) (reqDto *ReqPrepayEasyDto, err error) {
 	if err != nil {
 		return
 	}
+	// param := "%7B%0A%09%09%22page_url%22%3A%22https%3A%2F%2Fipay.p2shop.cn%2F%23%2Fpay%22%2C%0A%09%09%22attach%22%3A%22e_id%7C%7C%7C%7C10001%22%2C%0A%09%09%22e_id%22%3A10001%2C%0A%09%09%22body%22%3A%22xiaomiao+test%22%2C%0A%09%09%22total_fee%22%3A1%2C%0A%09%09%22trade_type%22%3A%22JSAPI%22%2C%0A%09%09%22notify_url%22%3A%22http%3A%2F%2Fxiao.xinmiao.com%22%0A%09%7D"
+	// param, _ = url.QueryUnescape(param)
+	reqDto = &ReqPrepayEasyDto{}
 	err = json.Unmarshal([]byte(param), reqDto)
 	if err != nil {
 		return
