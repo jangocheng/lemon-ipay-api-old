@@ -214,6 +214,10 @@ func Notify(c echo.Context) error {
 		fmt.Printf("\n%v-%v", time.Now(), err.Error())
 		return c.String(http.StatusBadRequest, "failure")
 	}
+
+	fmt.Printf("\nmapParam1:%v", formParam)
+	fmt.Printf("\nmapParam:%+v", base.ParseMapObject(formParam))
+	fmt.Printf("\nreqDto:%+v", reqDto)
 	//1.validate
 	if err = ValidNotify(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
 		fmt.Printf("\n%v-%v", time.Now(), err.Error())
