@@ -2,6 +2,7 @@ package alipay
 
 import (
 	"fmt"
+	"go-kitt/mapstruct"
 	"io/ioutil"
 	"lemon-ipay-api/model"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	alpay "github.com/relax-space/lemon-alipay-sdk"
 
 	"github.com/labstack/echo"
+	"github.com/relax-space/go-kit/base"
 	kmodel "github.com/relax-space/go-kit/model"
 )
 
@@ -199,19 +201,20 @@ func Notify(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "failure")
 	}
 
-	var reqDto model.NotifyAlipay
-	reqDto.Body = formParam
-
 	// var reqDto model.NotifyAlipay
-	// mapParam := base.ParseMapObjectEncode(formParam)
-	// err = mapstruct.Decode(mapParam, &reqDto)
-	// if err != nil {
-	// 	fmt.Printf("\n%v-%v", time.Now(), err.Error())
-	// 	return c.String(http.StatusBadRequest, "failure")
-	// }
+	// reqDto.Body = formParam
+
+	var reqDto model.NotifyAlipay
+	mapParam := base.ParseMapObjectEncode(formParam)
+	err = mapstruct.Decode(mapParam, &reqDto)
+	if err != nil {
+		fmt.Printf("\n%v-%v", time.Now(), err.Error())
+		return c.String(http.StatusBadRequest, "failure")
+	}
 	// //1.validate
 	// if err = ValidNotify(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
 	// 	fmt.Printf("\n%v-%v", time.Now(), err.Error())
+
 	// 	return c.String(http.StatusBadRequest, "failure")
 	// }
 
