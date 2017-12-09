@@ -2,11 +2,12 @@ package alipay
 
 import (
 	"fmt"
-	"go-kitt/mapstruct"
 	"io/ioutil"
 	"lemon-ipay-api/model"
 	"net/http"
 	"time"
+
+	"github.com/relax-space/go-kitt/mapstruct"
 
 	alpay "github.com/relax-space/lemon-alipay-sdk"
 
