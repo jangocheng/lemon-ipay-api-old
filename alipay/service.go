@@ -3,6 +3,7 @@ package alipay
 import (
 	"errors"
 	"fmt"
+	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"strconv"
 
@@ -31,7 +32,7 @@ func ValidNotify(body, signParam, outTradeNo, totalAmount string, mapParam map[s
 
 	fmt.Println("body", body)
 	//0.get account info
-	bodyMap := base.ParseMapObjectEncode(body)
+	bodyMap := base.ParseMapObjectEncode(body, "&", core.NOTIFY_BODY_SEP)
 	fmt.Printf("after body:%+v", bodyMap)
 	var eId int64
 	var flag bool
