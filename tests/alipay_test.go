@@ -3,11 +3,12 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"kit/test"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/relax-space/go-kit/test"
 
 	"lemon-ipay-api/alipay"
 

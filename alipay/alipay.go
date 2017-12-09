@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"lemon-ipay-api/model"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/relax-space/go-kitt/mapstruct"
@@ -201,12 +202,13 @@ func Notify(c echo.Context) error {
 		fmt.Printf("\n%v-%v", time.Now(), "param is empty")
 		return c.String(http.StatusBadRequest, "failure")
 	}
+	formParam = url.QueryEscape(formParam)
 
 	// var reqDto model.NotifyAlipay
 	// reqDto.Body = formParam
 
 	var reqDto model.NotifyAlipay
-	mapParam := base.ParseMapObjectEncode(formParam)
+	mapParam := base.ParseMapObject(formParam)
 	err = mapstruct.Decode(mapParam, &reqDto)
 	if err != nil {
 		fmt.Printf("\n%v-%v", time.Now(), err.Error())
