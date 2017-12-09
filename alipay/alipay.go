@@ -80,7 +80,16 @@ func Query(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
-	result, err := QueryCommon(account, reqDto.OutTradeNo)
+	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
+		AppId:        account.AppId,
+		AppAuthToken: account.AuthToken,
+	}
+
+	customDto := &paysdk.ReqCustomerDto{
+		PriKey: account.PriKey,
+		PubKey: account.PubKey,
+	}
+	result, err := paysdk.Query(reqDto.ReqQueryDto, customDto)
 	if err != nil {
 		return c.JSON(http.StatusOK, kmodel.Result{Success: false, Error: kmodel.Error{Code: 10004, Message: err.Error()}})
 	}
@@ -215,7 +224,7 @@ func Notify(c echo.Context) error {
 	}
 
 	//1.validate
-	if err = ValidNotify(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
+	if err = NotifyValidN(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
 		log.Error(err)
 		return c.String(http.StatusBadRequest, "failure")
 	}

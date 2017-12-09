@@ -32,7 +32,7 @@ type NotifyAlipay struct {
 
 	SendBackFee string `json:"send_back_fee,omitempty" mapstruct:"send_back_fee"` //float64
 	Subject     string `json:"subject,omitempty" mapstruct:"subject" xorm:"varchar(256)"`
-	Body        string `json:"body,omitempty" mapstruct:"body"` // xorm:"varchar(400)"
+	Body        string `json:"body,omitempty" mapstruct:"body" xorm:"varchar(400)"`
 	GmtCreate   string `json:"gmt_create,omitempty" mapstruct:"gmt_create"`
 	GmtPayment  string `json:"gmt_payment,omitempty" mapstruct:"gmt_payment"`
 

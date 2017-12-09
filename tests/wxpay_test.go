@@ -167,6 +167,40 @@ func Test_WxNotify(t *testing.T) {
 
 }
 
+func Test_WxNotify2(t *testing.T) {
+	xmlBody := `<xml><appid><![CDATA[wx856df5e42a345096]]></appid>
+	<attach><![CDATA[e_id||||10001&sub_notify_url||||https://baidu.com]]></attach>
+	<bank_type><![CDATA[CMB_CREDIT]]></bank_type>
+	<cash_fee><![CDATA[1]]></cash_fee>
+	<fee_type><![CDATA[CNY]]></fee_type>
+	<is_subscribe><![CDATA[Y]]></is_subscribe>
+	<mch_id><![CDATA[1294997801]]></mch_id>
+	<nonce_str><![CDATA[1240648768328515708]]></nonce_str>
+	<openid><![CDATA[os2u9uBHeJRPtCkisjVf-kWZWjKQ]]></openid>
+	<out_trade_no><![CDATA[169126120915612414200792892307]]></out_trade_no>
+	<result_code><![CDATA[SUCCESS]]></result_code>
+	<return_code><![CDATA[SUCCESS]]></return_code>
+	<sign><![CDATA[DACC65EAD9461590F693C08EAB2F0A10]]></sign>
+	<sub_appid><![CDATA[wx38db2bfbb79a3cea]]></sub_appid>
+	<sub_is_subscribe><![CDATA[Y]]></sub_is_subscribe>
+	<sub_mch_id><![CDATA[1464381802]]></sub_mch_id>
+	<sub_openid><![CDATA[o2-sBj3ozQQ6gxiyYKI2JzJFcUhY]]></sub_openid>
+	<time_end><![CDATA[20171209235456]]></time_end>
+	<total_fee>1</total_fee>
+	<trade_type><![CDATA[JSAPI]]></trade_type>
+	<transaction_id><![CDATA[4200000031201712091054287297]]></transaction_id>
+	</xml>`
+	req, err := http.NewRequest(echo.POST, "/v3/wx/notify", strings.NewReader(xmlBody))
+	test.Ok(t, err)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+	test.Ok(t, wechat.Notify(c))
+	fmt.Printf("\n%+v", string(rec.Body.Bytes()))
+	test.Equals(t, http.StatusOK, rec.Code)
+
+}
+
 func TestPing(t *testing.T) {
 	req, err := http.NewRequest(echo.GET, "/ping", nil)
 	test.Ok(t, err)

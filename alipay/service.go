@@ -11,7 +11,7 @@ import (
 	paysdk "github.com/relax-space/lemon-alipay-sdk"
 )
 
-func QueryCommon(account model.AlAccount, outTradeNo string) (result *paysdk.RespQueryDto, err error) {
+func NotifyQuery(account *model.AlAccount, outTradeNo string) (result *paysdk.RespQueryDto, err error) {
 	var reqDto paysdk.ReqQueryDto
 	reqDto.ReqBaseDto = &paysdk.ReqBaseDto{
 		AppId:        account.AppId,
@@ -27,10 +27,10 @@ func QueryCommon(account model.AlAccount, outTradeNo string) (result *paysdk.Res
 	return
 }
 
-func ValidNotify(body, signParam, outTradeNo, totalAmount string, mapParam map[string]interface{}) (err error) {
+func NotifyValidN(body, signParam, outTradeNo, totalAmount string, mapParam map[string]interface{}) (err error) {
 
 	//0.get account info
-	bodyMap := base.ParseMapObject(body, "&", core.NOTIFY_BODY_SEP)
+	bodyMap := base.ParseMapObject(body, core.NOTIFY_BODY_SEP1, core.NOTIFY_BODY_SEP2)
 	var eId int64
 	var flag bool
 	if eIdObj, ok := bodyMap["e_id"]; ok {
@@ -59,7 +59,7 @@ func ValidNotify(body, signParam, outTradeNo, totalAmount string, mapParam map[s
 	}
 
 	//2.valid data
-	queryDto, err := QueryCommon(account, outTradeNo)
+	queryDto, err := NotifyQuery(&account, outTradeNo)
 	if err != nil {
 		return
 	}
