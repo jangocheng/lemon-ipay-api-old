@@ -212,12 +212,12 @@ func Notify(c echo.Context) error {
 		fmt.Printf("\n%v-%v", time.Now(), err.Error())
 		return c.String(http.StatusBadRequest, "failure")
 	}
-	// //1.validate
-	// if err = ValidNotify(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
-	// 	fmt.Printf("\n%v-%v", time.Now(), err.Error())
+	//1.validate
+	if err = ValidNotify(reqDto.Body, reqDto.Sign, reqDto.OutTradeNo, reqDto.TotalAmount, mapParam); err != nil {
+		fmt.Printf("\n%v-%v", time.Now(), err.Error())
 
-	// 	return c.String(http.StatusBadRequest, "failure")
-	// }
+		return c.String(http.StatusBadRequest, "failure")
+	}
 
 	//2.save notify info
 	err = model.NotifyAlipay{}.InsertOne(&reqDto)
