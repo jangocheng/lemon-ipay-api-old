@@ -6,40 +6,40 @@ import (
 )
 
 type NotifyAlipay struct {
-	NotifyTime string `json:"notify_time,omitempty" form:"notify_time,omitempty"`
-	NotifyType string `json:"notify_type,omitempty" form:"notify_type,omitempty"`
-	NotifyId   string `json:"notify_id,omitempty" form:"notify_id,omitempty"`
-	SignType   string `json:"sign_type,omitempty" form:"sign_type,omitempty"`
-	Sign       string `json:"sign,omitempty"  form:"sign,omitempty" xorm:"varchar(256)"`
+	NotifyTime string `json:"notify_time,omitempty" mapstruct:"notify_time"`
+	NotifyType string `json:"notify_type,omitempty" mapstruct:"notify_type"`
+	NotifyId   string `json:"notify_id,omitempty" mapstruct:"notify_id"`
+	SignType   string `json:"sign_type,omitempty" mapstruct:"sign_type"`
+	Sign       string `json:"sign,omitempty"  mapstruct:"sign" xorm:"varchar(256)"`
 
-	TradeNo    string `json:"trade_no,omitempty" form:"trade_no,omitempty"`
-	AppId      string `json:"app_id,omitempty" form:"app_id,omitempty" xorm:"appid"`
-	OutTradeNo string `json:"out_trade_no,omitempty" form:"out_trade_no,omitempty"`
-	OutBizNo   string `json:"out_biz_no,omitempty" form:"out_biz_no,omitempty"`
-	BuyerId    string `json:"buyer_id,omitempty" form:"buyer_id,omitempty"`
+	TradeNo    string `json:"trade_no,omitempty" mapstruct:"trade_no"`
+	AppId      string `json:"app_id,omitempty" mapstruct:"app_id" xorm:"appid"`
+	OutTradeNo string `json:"out_trade_no,omitempty" mapstruct:"out_trade_no"`
+	OutBizNo   string `json:"out_biz_no,omitempty" mapstruct:"out_biz_no"`
+	BuyerId    string `json:"buyer_id,omitempty" mapstruct:"buyer_id"`
 
-	BuyerLogonId string `json:"buyer_logon_id,omitempty" form:"buyer_logon_id,omitempty"`
-	SellerId     string `json:"seller_id,omitempty" form:"seller_id,omitempty"`
-	SellerEmail  string `json:"seller_email,omitempty" form:"seller_email,omitempty"`
-	TradeStatus  string `json:"trade_status,omitempty" form:"trade_status,omitempty"`
-	TotalAmount  string `json:"total_amount,omitempty" form:"total_amount,omitempty"` //float64
+	BuyerLogonId string `json:"buyer_logon_id,omitempty" mapstruct:"buyer_logon_id"`
+	SellerId     string `json:"seller_id,omitempty" mapstruct:"seller_id"`
+	SellerEmail  string `json:"seller_email,omitempty" mapstruct:"seller_email"`
+	TradeStatus  string `json:"trade_status,omitempty" mapstruct:"trade_status"`
+	TotalAmount  string `json:"total_amount,omitempty" mapstruct:"total_amount"` //float64
 
-	ReceiptAmount  string `json:"receipt_amount,omitempty" form:"receipt_amount,omitempty"`     //float64
-	InvoiceAmount  string `json:"invoice_amount,omitempty" form:"invoice_amount,omitempty"`     //float64
-	BuyerPayAmount string `json:"buyer_pay_amount,omitempty" form:"buyer_pay_amount,omitempty"` //float64
-	PointAmount    string `json:"point_amount,omitempty" form:"point_amount,omitempty"`         //float64
-	RefundFee      string `json:"refund_fee,omitempty" form:"refund_fee,omitempty"`             //float64
+	ReceiptAmount  string `json:"receipt_amount,omitempty" mapstruct:"receipt_amount"`     //float64
+	InvoiceAmount  string `json:"invoice_amount,omitempty" mapstruct:"invoice_amount"`     //float64
+	BuyerPayAmount string `json:"buyer_pay_amount,omitempty" mapstruct:"buyer_pay_amount"` //float64
+	PointAmount    string `json:"point_amount,omitempty" mapstruct:"point_amount"`         //float64
+	RefundFee      string `json:"refund_fee,omitempty" mapstruct:"refund_fee"`             //float64
 
-	SendBackFee string `json:"send_back_fee,omitempty" form:"send_back_fee,omitempty"` //float64
-	Subject     string `json:"subject,omitempty" form:"subject,omitempty" xorm:"varchar(256)"`
-	Body        string `json:"body,omitempty" form:"body,omitempty"` // xorm:"varchar(400)"
-	GmtCreate   string `json:"gmt_create,omitempty" form:"gmt_create,omitempty"`
-	GmtPayment  string `json:"gmt_payment,omitempty" form:"gmt_payment,omitempty"`
+	SendBackFee string `json:"send_back_fee,omitempty" mapstruct:"send_back_fee"` //float64
+	Subject     string `json:"subject,omitempty" mapstruct:"subject" xorm:"varchar(256)"`
+	Body        string `json:"body,omitempty" mapstruct:"body"` // xorm:"varchar(400)"
+	GmtCreate   string `json:"gmt_create,omitempty" mapstruct:"gmt_create"`
+	GmtPayment  string `json:"gmt_payment,omitempty" mapstruct:"gmt_payment"`
 
-	GmtRefund    string    `json:"gmt_refund,omitempty" form:"gmt_refund,omitempty"`
-	GmtClose     string    `json:"gmt_close,omitempty" form:"gmt_close,omitempty"`
-	FundBillList string    `json:"fund_bill_list,omitempty" form:"fund_bill_list,omitempty" xorm:"varchar(512)"`
-	CreatedAt    time.Time `json:"created_at" form:"created_at,omitempty" xorm:"created"`
+	GmtRefund    string    `json:"gmt_refund,omitempty" mapstruct:"gmt_refund"`
+	GmtClose     string    `json:"gmt_close,omitempty" mapstruct:"gmt_close"`
+	FundBillList string    `json:"fund_bill_list,omitempty" mapstruct:"fund_bill_list" xorm:"varchar(512)"`
+	CreatedAt    time.Time `json:"created_at" mapstruct:"created_at" xorm:"created"`
 }
 
 func (NotifyAlipay) Get(appId, outTradeNo string) (notify NotifyAlipay, err error) {

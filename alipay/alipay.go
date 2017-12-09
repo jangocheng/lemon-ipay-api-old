@@ -3,12 +3,11 @@ package alipay
 import (
 	"fmt"
 	"io/ioutil"
+	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"net/http"
 	"net/url"
 	"time"
-
-	"github.com/relax-space/go-kitt/mapstruct"
 
 	alpay "github.com/relax-space/lemon-alipay-sdk"
 
@@ -209,7 +208,7 @@ func Notify(c echo.Context) error {
 
 	var reqDto model.NotifyAlipay
 	mapParam := base.ParseMapObject(formParam)
-	err = mapstruct.Decode(mapParam, &reqDto)
+	err = core.Decode(mapParam, &reqDto)
 	if err != nil {
 		fmt.Printf("\n%v-%v", time.Now(), err.Error())
 		return c.String(http.StatusBadRequest, "failure")
