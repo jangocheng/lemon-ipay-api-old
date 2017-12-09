@@ -2,6 +2,7 @@ package alipay
 
 import (
 	"errors"
+	"fmt"
 	"lemon-ipay-api/model"
 	"strconv"
 
@@ -50,6 +51,9 @@ func ValidNotify(body, signParam, outTradeNo, totalAmount string, mapParam map[s
 	signStr := signParam
 	delete(mapParam, "sign")
 	delete(mapParam, "sign_type")
+	fmt.Printf("\test:%v", base.JoinMapObjectEncode(mapParam))
+	fmt.Printf("\npubkey:%v", account.PubKey)
+	fmt.Printf("\nsignStr:%v", signStr)
 
 	if !sign.CheckSha1Sign(base.JoinMapObjectEncode(mapParam), signStr, account.PubKey) {
 		err = errors.New("sign valid failure")
