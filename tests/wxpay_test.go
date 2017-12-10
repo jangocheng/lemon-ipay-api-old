@@ -251,3 +251,11 @@ func Test_WxPrepayOpenId(t *testing.T) {
 	test.Equals(t, http.StatusFound, rec.Code)
 
 }
+
+func Test_NotifyBodyParse(t *testing.T) {
+	body := "e_id||||100&sub_notify_url||||https://www.baidu.com"
+	bodyMap, eId, err := wechat.NotifyBodyParse(body)
+	fmt.Printf("\n%+v", bodyMap)
+	fmt.Printf("\n%T,%v", eId, eId)
+	test.Ok(t, err)
+}

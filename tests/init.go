@@ -22,7 +22,7 @@ func initTest() {
 	}
 	core.InitEnv(envParam)
 	model.Db = InitDB("mysql", envParam.ConnEnv)
-	model.Db.Sync(new(model.WxAccount))
+	//model.Db.Sync(new(model.WxAccount))
 }
 
 func InitDB(dialect, conn string) (newDb *xorm.Engine) {

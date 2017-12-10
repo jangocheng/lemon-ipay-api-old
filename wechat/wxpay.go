@@ -3,14 +3,11 @@ package wechat
 import (
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"lemon-ipay-api/core"
 	"lemon-ipay-api/model"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/relax-space/go-kitt/random"
@@ -263,47 +260,26 @@ func Notify(c echo.Context) error {
 	return c.XML(http.StatusOK, successResult)
 }
 
-const (
-	IPAY_WECHAT_PREPAY       = "IPAY_WECHAT_PREPAY"
-	IPAY_WECHAT_PREPAY_INNER = "IPAY_WECHAT_PREPAY_INNER"
-	IPAY_WECHAT_PREPAY_ERROR = "IPAY_WECHAT_PREPAY_ERROR"
-	//IPAY_WECHAT_PREPAY_ERROR = "IPAY_WECHAT_PREPAY_ERROR"
-)
-
 /*
-1.get secret by eId
-2.get openId by secret
-3.Prepay
+redirect to "https:/xxxx/v3/prepayopenid" for get openid
 */
 func PrepayEasy(c echo.Context) error {
 
-	//appId := c.QueryParam("app_id")
-	//pageUrl := c.QueryParam("page_url")
 	prepay_param := c.QueryParam("prepay_param")
 
 	reqDto := ReqPrepayEasyDto{}
 	err := json.Unmarshal([]byte(prepay_param), &reqDto)
 	if err != nil {
-		errString := "request param format is not right"
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, errString, c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.String(http.StatusBadRequest, errString)
+		return prepayError(c, "request param format is not right")
 	}
-	urlStr, err := validUrl(reqDto.PageUrl)
+	urlStr, err := prepayPageUrl(reqDto.PageUrl)
 	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.String(http.StatusBadRequest, err.Error())
+		return prepayError(c, err.Error())
 	}
 	reqDto.PageUrl = fmt.Sprintf(urlStr, random.Uuid("")) + "?" + random.Uuid("")
 	account, err := model.WxAccount{}.Get(reqDto.EId)
 	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.Redirect(http.StatusFound, reqDto.PageUrl)
+		return prepayErrorDirect(c, reqDto.PageUrl, err.Error())
 	}
 
 	openIdUrlParam := &mpAuth.ReqDto{
@@ -313,94 +289,7 @@ func PrepayEasy(c echo.Context) error {
 		PageUrl:     reqDto.PageUrl,
 	}
 	SetCookie(IPAY_WECHAT_PREPAY_INNER, prepay_param, c)
+	SetCookie(IPAY_WECHAT_PREPAY, "", c)
 	SetCookie(IPAY_WECHAT_PREPAY_ERROR, "", c)
 	return c.Redirect(http.StatusFound, mpAuth.GetUrlForAccessToken(openIdUrlParam))
-}
-
-func PrepayOpenId(c echo.Context) error {
-	code := c.QueryParam("code")
-	reqUrl := c.QueryParam("reurl")
-	cookie, err := c.Cookie(IPAY_WECHAT_PREPAY_INNER)
-	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.Redirect(http.StatusFound, reqUrl)
-	}
-	param, err := url.QueryUnescape(cookie.Value)
-	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.Redirect(http.StatusFound, reqUrl)
-	}
-	reqDto := ReqPrepayEasyDto{}
-	err = json.Unmarshal([]byte(param), &reqDto)
-	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.Redirect(http.StatusFound, reqUrl)
-	}
-	account, err := model.WxAccount{}.Get(reqDto.EId)
-	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.Redirect(http.StatusFound, reqUrl)
-	}
-	respDto, err := mpAuth.GetAccessTokenAndOpenId(code, account.AppId, account.Secret)
-	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.Redirect(http.StatusFound, reqUrl)
-	}
-	reqDto.OpenId = respDto.OpenId
-	//request Prepay
-	reqDto.ReqBaseDto = &wxpay.ReqBaseDto{
-		AppId:    account.AppId,
-		SubAppId: account.SubAppId,
-		MchId:    account.MchId,
-		SubMchId: account.SubMchId,
-	}
-	customDto := wxpay.ReqCustomerDto{
-		Key: account.Key,
-	}
-	//reqDto.Attach = "1111"
-	result, err := wxpay.Prepay(reqDto.ReqPrepayDto, &customDto)
-	if err != nil {
-		SetCookie(IPAY_WECHAT_PREPAY_ERROR, err.Error(), c)
-		SetCookie(IPAY_WECHAT_PREPAY_INNER, "", c)
-		SetCookie(IPAY_WECHAT_PREPAY, "", c)
-		return c.Redirect(http.StatusFound, reqUrl)
-	}
-
-	prePayParam := make(map[string]interface{}, 0)
-	prePayParam["package"] = "prepay_id=" + base.ToString(result["prepay_id"])
-	prePayParam["timeStamp"] = base.ToString(time.Now().Unix())
-	prePayParam["nonceStr"] = result["nonce_str"]
-	prePayParam["signType"] = "MD5"
-	prePayParam["appId"] = result["appid"]
-	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
-
-	SetCookieObj(IPAY_WECHAT_PREPAY, prePayParam, c)
-	SetCookie(IPAY_WECHAT_PREPAY_ERROR, "", c)
-
-	return c.Redirect(http.StatusFound, reqUrl)
-
-}
-
-func validUrl(pageUrl string) (result string, err error) {
-	result, err = url.QueryUnescape(pageUrl)
-	if err != nil {
-		return
-	}
-	if len(result) == 0 {
-		err = errors.New("page_url miss")
-		return
-	}
-	indexTag := strings.Index(result, "#")
-	result = result[0:indexTag] + "%v?" + result[indexTag:]
-	return
 }
