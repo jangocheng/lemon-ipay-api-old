@@ -18,6 +18,7 @@ import (
 	"github.com/relax-space/go-kit/httpreq"
 	"github.com/relax-space/go-kit/log"
 	"github.com/relax-space/go-kit/sign"
+	"github.com/relax-space/go-kitt/auth"
 	"github.com/relax-space/lemon-wxmp-sdk/mpAuth"
 	paysdk "github.com/relax-space/lemon-wxpay-sdk"
 	wxpay "github.com/relax-space/lemon-wxpay-sdk"
@@ -204,5 +205,6 @@ func PrepayRespParam(reqDto *ReqPrepayEasyDto, account *model.WxAccount) (prePay
 	prePayParam["signType"] = "MD5"
 	prePayParam["appId"] = result["appid"]
 	prePayParam["pay_sign"] = sign.MakeMd5Sign(base.JoinMapObject(prePayParam), account.Key)
+	prePayParam["jwtToken"], _ = auth.NewToken(map[string]interface{}{"type": "ticket"})
 	return
 }
